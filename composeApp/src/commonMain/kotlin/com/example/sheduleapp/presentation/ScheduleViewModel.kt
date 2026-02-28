@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import com.example.scheduleapp.data.repository.ScheduleRepository
+import com.example.sheduleapp.util.getStartOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -38,6 +39,8 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository) : Vi
             } catch (e: Exception) {
                 println("Error fetching schedule object: ${e.message}")
                 println("timeMin: $timeMin")
+                val f = getStartOfWeek(today);
+                println("Today: $f")
                 e.printStackTrace()
                 _scheduleState.value = null
             }
