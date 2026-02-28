@@ -14,6 +14,7 @@ import com.example.scheduleapp.domain.repository.WeekScheduleRepository
 import com.example.scheduleapp.domain.usecase.GetScheduleEntryUseCase
 import com.example.scheduleapp.domain.usecase.GetSettingsUseCase
 import com.example.scheduleapp.domain.usecase.GetWeekScheduleUseCase
+import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.scheduleapp.domain.usecase.UpdateSettingsUseCase
 import com.example.scheduleapp.presentation.ScheduleViewModel
 import io.ktor.client.*
@@ -50,6 +51,7 @@ val useCaseModule = module {
     single { UpdateSettingsUseCase(get()) }
     single { GetScheduleEntryUseCase(get()) }
     single { GetWeekScheduleUseCase(get()) }
+    single { SearchScheduleEntriesUseCase() }
 }
 
 val viewModelModule = module {
