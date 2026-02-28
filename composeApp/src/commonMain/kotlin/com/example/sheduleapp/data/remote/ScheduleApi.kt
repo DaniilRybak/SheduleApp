@@ -33,7 +33,6 @@ class ScheduleApi(private val httpClient: HttpClient) {
     private fun unwrapPossiblyQuotedJson(bodyText: String): String {
         val trimmed = bodyText.trimStart()
         return if (trimmed.startsWith("\"")) {
-            // Сервер иногда возвращает JSON как строку (с экранированием).
             json.decodeFromString<String>(bodyText)
         } else {
             bodyText
@@ -41,13 +40,11 @@ class ScheduleApi(private val httpClient: HttpClient) {
     }
 
     private fun logProcessedJson(rawJson: String) {
-        // В лог выводим только обработанный JSON без "REQUEST/HEADERS" и т.п.
         val compact = rawJson.trim()
         val pretty = runCatching {
             val element: JsonElement = prettyJson.parseToJsonElement(compact)
             prettyJson.encodeToString(element)
         }.getOrElse {
-            // Если вдруг пришёл невалидный JSON — всё равно покажем как есть
             compact
         }
         println(pretty)

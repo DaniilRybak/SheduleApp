@@ -54,22 +54,22 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
             _isLoading.value = true
             _errorMessage.value = null
 
-            val timeZone = TimeZone.currentSystemDefault()
-            val targetDate = date ?: _selectedDate.value ?: Clock.System.now().toLocalDateTime(timeZone).date
-
-            // Сохраняем выбранную дату
-            _selectedDate.value = targetDate
-
-            val weekStart = getStartOfWeek(targetDate)
-            val weekEnd = weekStart.plus(6, DateTimeUnit.DAY)
-
-            // Обновляем текст диапазона недели
-            updateWeekRangeText(weekStart, weekEnd)
-
-            val timeMin = weekStart.atStartOfDayIn(timeZone).toString()
-            val timeMax = weekEnd.atTime(23, 59, 59).toInstant(timeZone).toString()
-
             try {
+                val timeZone = TimeZone.currentSystemDefault()
+                val targetDate = date ?: _selectedDate.value ?: Clock.System.now().toLocalDateTime(timeZone).date
+
+                _selectedDate.value = targetDate
+
+                val weekStart = getStartOfWeek(targetDate)
+                val weekEnd = weekStart.plus(6, DateTimeUnit.DAY)
+
+                updateWeekRangeText(weekStart, weekEnd)
+
+                val timeMin = weekStart.atStartOfDayIn(timeZone).toString()
+                val timeMax = weekEnd.atTime(23, 59, 59).toInstant(timeZone).toString()
+
+                println("Fetching schedule: $timeMin to $timeMax")
+
                 val request = ScheduleRequest(
                     size = 50,
                     timeMin = timeMin,
@@ -81,8 +81,16 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
                 _scheduleState.value = scheduleResponse
                 filterEvents()
 
+                println("Schedule loaded successfully: ${scheduleResponse.embedded?.events?.size ?: 0} events")
+
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Ошибка загрузки расписания"
+                val errorMsg = when {
+                    e.message?.contains("Field") == true -> "Ошибка формата данных. Попробуйте еще раз."
+                    e.message?.contains("Unable to resolve") == true -> "Нет подключения к интернету"
+                    e.message?.contains("timeout") == true -> "Превышено время ожидания"
+                    else -> e.message ?: "Неизвестная ошибка"
+                }
+                _errorMessage.value = errorMsg
                 _scheduleState.value = null
                 println("Error fetching schedule: ${e.message}")
                 e.printStackTrace()

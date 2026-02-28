@@ -79,7 +79,7 @@ data class EventLocationDto(
 
 @Serializable
 data class LinksWrapper(
-    @SerialName("event-rooms") @Serializable(with = EventRoomsSerializer::class) val eventRooms: List<HrefWrapper>
+    @SerialName("event-rooms") @Serializable(with = EventRoomsSerializer::class) val eventRooms: List<HrefWrapper>? = null
 )
 
 @Serializable
