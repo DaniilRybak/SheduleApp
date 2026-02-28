@@ -1,0 +1,226 @@
+package com.example.sheduleapp.presentation.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.scheduleapp.presentation.ScheduleViewModel
+import com.example.sheduleapp.data.model.GroupDto
+import org.koin.compose.koinInject
+
+@Composable
+fun GroupSearchScreen(
+    viewModel: ScheduleViewModel = koinInject(),
+    onBack: () -> Unit = {}
+) {
+    val groups by viewModel.groups.collectAsState()
+    val query by viewModel.groupQuery.collectAsState()
+    val favoriteIds by viewModel.favoriteGroupIds.collectAsState()
+
+    val filteredGroups = if (query.isEmpty()) {
+        emptyList()
+    } else {
+        groups.filter { it.name.contains(query, ignoreCase = true) }
+    }
+
+    val favoriteGroups = groups
+        .filter { it.personId in favoriteIds }
+        .sortedBy { it.name }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadGroups()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Выбрать группу или аудиторию",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        SearchTextField(
+            query = query,
+            onQueryChange = { viewModel.onGroupQueryChanged(it) }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (query.isEmpty()) {
+            if (favoriteGroups.isEmpty()) {
+                Text(
+                    text = "Начните вводить название группы или аудитории",
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 32.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            } else {
+                Text(
+                    text = "Избранные",
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(favoriteGroups) { group ->
+                        GroupCard(
+                            group = group,
+                            isFavorite = true,
+                            onSelect = {
+                                viewModel.selectGroup(group.personId, group.name)
+                            },
+                            onToggleFavorite = {
+                                viewModel.toggleFavoriteGroup(group)
+                            }
+                        )
+                    }
+                }
+            }
+        } else if (filteredGroups.isEmpty()) {
+            Text(
+                text = "Ничего не найдено",
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 32.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 14.sp
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredGroups) { group ->
+                    GroupCard(
+                        group = group,
+                        isFavorite = group.personId in favoriteIds,
+                        onSelect = {
+                            viewModel.selectGroup(group.personId, group.name)
+                        },
+                        onToggleFavorite = {
+                            viewModel.toggleFavoriteGroup(group)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchTextField(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp),
+        placeholder = {
+            Text("Поиск группы или аудитории...")
+        },
+        leadingIcon = {
+            Text("🔍")
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                Text(
+                    "✕",
+                    modifier = Modifier.clickable { onQueryChange("") }
+                )
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+        )
+    )
+}
+
+@Composable
+private fun GroupCard(
+    group: GroupDto,
+    isFavorite: Boolean,
+    onSelect: () -> Unit,
+    onToggleFavorite: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelect() },
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = group.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "ID: ${group.personId.take(8)}...",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onToggleFavorite) {
+                    Text(
+                        text = if (isFavorite) "★" else "☆",
+                        fontSize = 20.sp,
+                        color = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
