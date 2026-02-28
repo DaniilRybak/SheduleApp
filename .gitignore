@@ -1,0 +1,26 @@
+# Gradle / KMP
+.gradle/
+build/
+**/build/
+!**/src/main/**/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+
+# iOS / Xcode / Compose Multiplatform
+*.framework/
+*.xcframework/
+xcuserdata/
+*.xcworkspace/
+iosApp/build/
+composeApp/build/
+DerivedData/
+Pods/
+Podfile.lock
+.DS_Store
+
+# Общее
+*.swp
+*~
