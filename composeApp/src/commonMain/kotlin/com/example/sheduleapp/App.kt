@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.jetbrains.compose.resources.painterResource
 
 import sheduleapp.composeapp.generated.resources.Res
@@ -22,7 +23,7 @@ import sheduleapp.composeapp.generated.resources.compose_multiplatform
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    ScheduleAppTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier

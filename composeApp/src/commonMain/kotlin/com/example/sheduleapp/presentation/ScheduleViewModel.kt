@@ -49,6 +49,14 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
     private val _weekRangeText = MutableStateFlow("")
     val weekRangeText = _weekRangeText.asStateFlow()
 
+    // События, сгруппированные по дням недели
+    private val _eventsByDay = MutableStateFlow<Map<String, List<EventDto>>>(emptyMap())
+    val eventsByDay = _eventsByDay.asStateFlow()
+
+    // Развернутые дни (Set содержит ключи развернутых дней)
+    private val _expandedDays = MutableStateFlow<Set<String>>(emptySet())
+    val expandedDays = _expandedDays.asStateFlow()
+
     fun fetchSchedule(date: LocalDate? = null) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -142,8 +150,73 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
         filterEvents()
     }
 
+    // Переключить раскрытие дня
+    fun toggleDayExpansion(dayKey: String) {
+        _expandedDays.value = if (dayKey in _expandedDays.value) {
+            _expandedDays.value - dayKey
+        } else {
+            _expandedDays.value + dayKey
+        }
+    }
+
     private fun filterEvents() {
         val allEvents = _scheduleState.value?.embedded?.events ?: emptyList()
         _filteredEvents.value = searchUseCase(searchQuery.value, allEvents)
+        groupEventsByDay()
+    }
+
+    private fun groupEventsByDay() {
+        val events = _filteredEvents.value
+
+        // Группируем по дням и сортируем
+        val grouped = events
+            .groupBy { event -> formatDayOfWeek(event.start) }
+            .toList()
+            .sortedBy { (day, _) -> getDayOrder(day) }
+            .toMap()
+
+        _eventsByDay.value = grouped
+
+        // Автоматически разворачиваем сегодняшний день при первой загрузке
+        if (_expandedDays.value.isEmpty() && grouped.isNotEmpty()) {
+            val timeZone = TimeZone.currentSystemDefault()
+            val today = Clock.System.now().toLocalDateTime(timeZone).date
+            val todayKey = formatDayOfWeek(today.toString())
+            if (todayKey in grouped.keys) {
+                _expandedDays.value = setOf(todayKey)
+            } else {
+                // Если сегодня нет в списке, разворачиваем первый день
+                _expandedDays.value = setOf(grouped.keys.first())
+            }
+        }
+    }
+
+    private fun formatDayOfWeek(dateTime: String?): String {
+        if (dateTime == null) return "Неизвестная дата"
+
+        val date = dateTime.substring(0, 10)
+        val parts = date.split("-")
+        if (parts.size != 3) return date
+
+        val year = parts[0].toIntOrNull() ?: return date
+        val month = parts[1].toIntOrNull() ?: return date
+        val day = parts[2].toIntOrNull() ?: return date
+
+        val localDate = LocalDate(year, month, day)
+
+        val daysShort = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+        val months = listOf("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
+
+        val dayOfWeek = localDate.dayOfWeek.isoDayNumber - 1 // 0 = Понедельник
+        val dayShort = daysShort[dayOfWeek]
+        val monthName = months[localDate.month.number - 1]
+
+        return "$dayShort, $day $monthName"
+    }
+
+    private fun getDayOrder(dayStr: String): Int {
+        val daysShort = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+        val dayPrefix = dayStr.take(2)
+        return daysShort.indexOf(dayPrefix).takeIf { it >= 0 } ?: 7
     }
 }

@@ -21,16 +21,18 @@ import androidx.compose.ui.unit.dp
 import com.example.scheduleapp.data.model.EventDto
 import com.example.scheduleapp.di.commonModule
 import com.example.scheduleapp.presentation.ScheduleViewModel
+import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 
 @Composable
 fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
-    val filteredEvents by viewModel.filteredEvents.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val weekRangeText by viewModel.weekRangeText.collectAsState()
+    val eventsByDay by viewModel.eventsByDay.collectAsState()
+    val expandedDays by viewModel.expandedDays.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchSchedule()
@@ -40,6 +42,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
     ) {
         WeekNavigationBar(
             weekRangeText = weekRangeText,
@@ -56,9 +59,13 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
         when {
             isLoading -> LoadingContent()
             errorMessage != null -> ErrorContent(errorMessage!!) { viewModel.fetchSchedule() }
-            filteredEvents.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
-            filteredEvents.isEmpty() -> EmptyContent()
-            else -> EventsList(filteredEvents)
+            eventsByDay.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
+            eventsByDay.isEmpty() -> EmptyContent()
+            else -> EventsByDayList(
+                eventsByDay = eventsByDay,
+                expandedDays = expandedDays,
+                onToggleDay = { viewModel.toggleDayExpansion(it) }
+            )
         }
     }
 }
@@ -76,14 +83,14 @@ private fun WeekNavigationBar(
         shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(
-                text = "Расписание",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
+//            Text(
+//                text = "Расписание",
+//                style = MaterialTheme.typography.headlineSmall,
+//                fontWeight = FontWeight.Bold,
+//                color = MaterialTheme.colorScheme.onPrimaryContainer
+//            )
+//
+//            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -149,17 +156,124 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         )
     )
 }
-
+// Список пар, сгруппированных по дням
 @Composable
-private fun EventsList(events: List<EventDto>) {
+private fun EventsByDayList(
+    eventsByDay: Map<String, List<EventDto>>,
+    expandedDays: Set<String>,
+    onToggleDay: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(events) { event -> EventCard(event) }
+        eventsByDay.forEach { (day, events) ->
+            item(key = day) {
+                DaySection(
+                    day = day,
+                    events = events,
+                    isExpanded = day in expandedDays,
+                    onToggle = { onToggleDay(day) }
+                )
+            }
+        }
     }
 }
+
+// Секция для одного дня
+@Composable
+private fun DaySection(
+    day: String,
+    events: List<EventDto>,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Заголовок дня
+        DayHeader(
+            day = day,
+            eventCount = events.size,
+            isExpanded = isExpanded,
+            onToggle = onToggle
+        )
+
+        // Список событий (показываем только если развернут)
+        if (isExpanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                events.forEach { event ->
+                    EventCard(event)
+                }
+            }
+        }
+    }
+}
+
+// Заголовок дня
+@Composable
+private fun DayHeader(
+    day: String,
+    eventCount: Int,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = day,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "$eventCount ${getPluralForm(eventCount)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
+
+            Text(
+                text = if (isExpanded) "▼" else "▶",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+    }
+}
+
+private fun getPluralForm(count: Int): String {
+    return when {
+        count % 10 == 1 && count % 100 != 11 -> "пара"
+        count % 10 in 2..4 && count % 100 !in 12..14 -> "пары"
+        else -> "пар"
+    }
+}
+
 
 @Composable
 private fun EventCard(event: EventDto) {
@@ -262,7 +376,9 @@ private fun EmptyContent() {
 @Composable
 private fun ScheduleScreenPreview() {
     KoinApplication(application = { modules(commonModule) }) {
-        MaterialTheme { ScheduleScreen() }
+        ScheduleAppTheme {
+            ScheduleScreen()
+        }
     }
 }
 
