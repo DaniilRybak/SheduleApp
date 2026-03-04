@@ -1,4 +1,4 @@
-package com.example.scheduleapp.presentation.screen
+package com.example.sheduleapp.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -220,7 +220,6 @@ private fun DaySection(
                         is DaySlotItem.UnplacedLesson -> UnplacedLessonCardWithLocation(
                             item.lesson,
                             item.reason,
-                            roomName = item.roomName,
                             customLocation = item.customLocation
                         )
                     }
@@ -297,40 +296,6 @@ private fun getPluralForm(count: Int): String {
     }
 }
 
-
-@Composable
-private fun EventCard(event: EventDto) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(
-                text = event.name ?: "Без названия",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = formatEventTime(event.start, event.end),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (event.start != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formatEventDate(event.start),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun EventCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null) {
     Card(
@@ -352,14 +317,6 @@ private fun EventCardWithLocation(event: EventDto, roomName: String? = null, cus
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            if (event.start != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formatEventDate(event.start),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
             if (roomName != null || customLocation != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -369,7 +326,6 @@ private fun EventCardWithLocation(event: EventDto, roomName: String? = null, cus
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            println("Event: ${event.name}, Room: $roomName, Custom: $customLocation")
         }
     }
 }
@@ -395,32 +351,6 @@ private fun WindowCard(slot: TimeSlot) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
-        }
-    }
-}
-
-@Composable
-private fun ConflictCard(slot: TimeSlot, lessons: List<EventDto>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = "Конфликт пар (${slot.startHm} - ${slot.endHm})",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            lessons.forEach { event ->
-                Text(
-                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
         }
     }
 }
@@ -453,32 +383,7 @@ private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, lo
 }
 
 @Composable
-private fun UnplacedLessonCard(event: EventDto, reason: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-        elevation = CardDefaults.cardElevation(1.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
-            Text(
-                text = "Вне сетки: ${event.name ?: "Без названия"}",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = reason,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-        }
-    }
-}
-
-@Composable
-private fun UnplacedLessonCardWithLocation(event: EventDto, reason: String, roomName: String? = null, customLocation: String? = null) {
+private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -519,19 +424,6 @@ private fun formatEventTime(start: String?, end: String?): String {
 private fun extractTime(dateTime: String?): String? {
     if (dateTime == null || dateTime.length < 16) return null
     return dateTime.substring(11, 16)
-}
-
-private fun formatEventDate(dateTime: String): String {
-    if (dateTime.length < 10) return dateTime
-
-    val date = dateTime.substring(0, 10)
-    val parts = date.split("-")
-    if (parts.size != 3) return date
-
-    val months = listOf("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
-    val day = parts[2].toIntOrNull() ?: return date
-    val month = parts[1].toIntOrNull()?.let { if (it in 1..12) months[it - 1] else null } ?: return date
-    return "$day $month"
 }
 
 @Composable
