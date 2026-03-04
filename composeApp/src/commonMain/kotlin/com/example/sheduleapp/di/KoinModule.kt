@@ -11,6 +11,7 @@ import com.example.scheduleapp.data.repository.WeekScheduleRepositoryImpl
 import com.example.scheduleapp.domain.repository.ScheduleEntryRepository
 import com.example.scheduleapp.domain.repository.SettingsRepository
 import com.example.scheduleapp.domain.repository.WeekScheduleRepository
+import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.GetScheduleEntryUseCase
 import com.example.scheduleapp.domain.usecase.GetSettingsUseCase
 import com.example.scheduleapp.domain.usecase.GetWeekScheduleUseCase
@@ -52,6 +53,7 @@ val useCaseModule = module {
     single { GetScheduleEntryUseCase(get()) }
     single { GetWeekScheduleUseCase(get()) }
     single { SearchScheduleEntriesUseCase() }
+    single { BuildDaySlotsUseCase() }
 }
 
 val viewModelModule = module {

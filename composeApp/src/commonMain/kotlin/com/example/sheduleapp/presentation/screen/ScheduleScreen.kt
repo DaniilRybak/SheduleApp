@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,6 +19,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.scheduleapp.data.model.EventDto
 import com.example.scheduleapp.di.commonModule
+import com.example.scheduleapp.domain.model.DaySlotItem
+import com.example.scheduleapp.domain.model.TimeSlot
 import com.example.scheduleapp.presentation.ScheduleViewModel
 import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.koin.compose.KoinApplication
@@ -31,7 +32,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val weekRangeText by viewModel.weekRangeText.collectAsState()
-    val eventsByDay by viewModel.eventsByDay.collectAsState()
+    val dayItemsByDay by viewModel.dayItemsByDay.collectAsState()
     val expandedDays by viewModel.expandedDays.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -59,10 +60,10 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
         when {
             isLoading -> LoadingContent()
             errorMessage != null -> ErrorContent(errorMessage!!) { viewModel.fetchSchedule() }
-            eventsByDay.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
-            eventsByDay.isEmpty() -> EmptyContent()
+            dayItemsByDay.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
+            dayItemsByDay.isEmpty() -> EmptyContent()
             else -> EventsByDayList(
-                eventsByDay = eventsByDay,
+                dayItemsByDay = dayItemsByDay,
                 expandedDays = expandedDays,
                 onToggleDay = { viewModel.toggleDayExpansion(it) }
             )
@@ -156,10 +157,10 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         )
     )
 }
-// Список пар, сгруппированных по дням
+
 @Composable
 private fun EventsByDayList(
-    eventsByDay: Map<String, List<EventDto>>,
+    dayItemsByDay: Map<String, List<DaySlotItem>>,
     expandedDays: Set<String>,
     onToggleDay: (String) -> Unit
 ) {
@@ -168,11 +169,11 @@ private fun EventsByDayList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        eventsByDay.forEach { (day, events) ->
+        dayItemsByDay.forEach { (day, items) ->
             item(key = day) {
                 DaySection(
                     day = day,
-                    events = events,
+                    dayItems = items,
                     isExpanded = day in expandedDays,
                     onToggle = { onToggleDay(day) }
                 )
@@ -185,7 +186,7 @@ private fun EventsByDayList(
 @Composable
 private fun DaySection(
     day: String,
-    events: List<EventDto>,
+    dayItems: List<DaySlotItem>,
     isExpanded: Boolean,
     onToggle: () -> Unit
 ) {
@@ -193,15 +194,13 @@ private fun DaySection(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Заголовок дня
         DayHeader(
             day = day,
-            eventCount = events.size,
+            eventCount = countLessons(dayItems),
             isExpanded = isExpanded,
             onToggle = onToggle
         )
 
-        // Список событий (показываем только если развернут)
         if (isExpanded) {
             Column(
                 modifier = Modifier
@@ -209,10 +208,34 @@ private fun DaySection(
                     .padding(start = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                events.forEach { event ->
-                    EventCard(event)
+                dayItems.forEach { item ->
+                    when (item) {
+                        is DaySlotItem.LessonSlot -> EventCardWithLocation(
+                            item.lesson,
+                            roomName = item.roomName,
+                            customLocation = item.customLocation
+                        )
+                        is DaySlotItem.WindowSlot -> WindowCard(item.slot)
+                        is DaySlotItem.ConflictSlot -> ConflictCardWithLocation(item.slot, item.lessons, item.locations)
+                        is DaySlotItem.UnplacedLesson -> UnplacedLessonCardWithLocation(
+                            item.lesson,
+                            item.reason,
+                            roomName = item.roomName,
+                            customLocation = item.customLocation
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+private fun countLessons(items: List<DaySlotItem>): Int {
+    return items.sumOf { item ->
+        when (item) {
+            is DaySlotItem.LessonSlot -> 1
+            is DaySlotItem.ConflictSlot -> item.lessons.size
+            else -> 0
         }
     }
 }
@@ -292,7 +315,7 @@ private fun EventCard(event: EventDto) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "${formatEventTime(event.start, event.end)}",
+                text = formatEventTime(event.start, event.end),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -308,14 +331,199 @@ private fun EventCard(event: EventDto) {
     }
 }
 
+@Composable
+private fun EventCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Text(
+                text = event.name ?: "Без названия",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = formatEventTime(event.start, event.end),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (event.start != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = formatEventDate(event.start),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+            if (roomName != null || customLocation != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${roomName ?: customLocation}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            println("Event: ${event.name}, Room: $roomName, Custom: $customLocation")
+        }
+    }
+}
+
+@Composable
+private fun WindowCard(slot: TimeSlot) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(
+                text = "Окно",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${slot.startHm} - ${slot.endHm}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConflictCard(slot: TimeSlot, lessons: List<EventDto>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Конфликт пар (${slot.startHm} - ${slot.endHm})",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            lessons.forEach { event ->
+                Text(
+                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, locations: Map<String, String?> = emptyMap()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Конфликт пар (${slot.startHm} - ${slot.endHm})",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            lessons.forEach { event ->
+                val locationStr = locations[event.id]?.let { " 📍 $it" } ?: ""
+                Text(
+                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})$locationStr",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UnplacedLessonCard(event: EventDto, reason: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(
+                text = "Вне сетки: ${event.name ?: "Без названия"}",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = reason,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+private fun UnplacedLessonCardWithLocation(event: EventDto, reason: String, roomName: String? = null, customLocation: String? = null) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(
+                text = "Вне сетки: ${event.name ?: "Без названия"}",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            if (roomName != null || customLocation != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "📍 ${roomName ?: customLocation}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+    }
+}
+
 private fun formatEventTime(start: String?, end: String?): String {
-    if (start == null) return "Время не указано"
-    val startTime = start.substring(11, 16)
-    val endTime = end?.substring(11, 16) ?: ""
-    return if (endTime.isNotEmpty()) "$startTime - $endTime" else startTime
+    val startTime = extractTime(start)
+    val endTime = extractTime(end)
+
+    return when {
+        startTime == null -> "Время не указано"
+        endTime == null -> startTime
+        else -> "$startTime - $endTime"
+    }
+}
+
+private fun extractTime(dateTime: String?): String? {
+    if (dateTime == null || dateTime.length < 16) return null
+    return dateTime.substring(11, 16)
 }
 
 private fun formatEventDate(dateTime: String): String {
+    if (dateTime.length < 10) return dateTime
+
     val date = dateTime.substring(0, 10)
     val parts = date.split("-")
     if (parts.size != 3) return date
@@ -381,8 +589,3 @@ private fun ScheduleScreenPreview() {
         }
     }
 }
-
-
-
-
-

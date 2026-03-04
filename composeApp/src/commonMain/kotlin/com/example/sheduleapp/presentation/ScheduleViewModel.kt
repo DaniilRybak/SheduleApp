@@ -6,6 +6,8 @@ import com.example.scheduleapp.data.model.EventDto
 import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import com.example.scheduleapp.data.repository.ScheduleRepository
+import com.example.scheduleapp.domain.model.DaySlotItem
+import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.sheduleapp.util.getStartOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +19,10 @@ import kotlinx.datetime.number
 import kotlin.time.Clock
 
 
-class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
-                        private val searchUseCase: SearchScheduleEntriesUseCase = SearchScheduleEntriesUseCase()
+class ScheduleViewModel(
+    private val scheduleRepository: ScheduleRepository,
+    private val searchUseCase: SearchScheduleEntriesUseCase = SearchScheduleEntriesUseCase(),
+    private val buildDaySlotsUseCase: BuildDaySlotsUseCase = BuildDaySlotsUseCase()
 ) : ViewModel() {
 
     // Состояние расписания
@@ -41,19 +45,18 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    // Текущая выбранная дата (для навигации по неделям)
     private val _selectedDate = MutableStateFlow<LocalDate?>(null)
     val selectedDate = _selectedDate.asStateFlow()
 
-    // Текст выбранной недели для отображения
     private val _weekRangeText = MutableStateFlow("")
     val weekRangeText = _weekRangeText.asStateFlow()
 
-    // События, сгруппированные по дням недели
     private val _eventsByDay = MutableStateFlow<Map<String, List<EventDto>>>(emptyMap())
     val eventsByDay = _eventsByDay.asStateFlow()
 
-    // Развернутые дни (Set содержит ключи развернутых дней)
+    private val _dayItemsByDay = MutableStateFlow<Map<String, List<DaySlotItem>>>(emptyMap())
+    val dayItemsByDay = _dayItemsByDay.asStateFlow()
+
     private val _expandedDays = MutableStateFlow<Set<String>>(emptySet())
     val expandedDays = _expandedDays.asStateFlow()
 
@@ -166,6 +169,7 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
     }
 
     private fun groupEventsByDay() {
+        val response = _scheduleState.value ?: return
         val events = _filteredEvents.value
 
         // Группируем по дням и сортируем
@@ -177,7 +181,19 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
 
         _eventsByDay.value = grouped
 
-        // Автоматически разворачиваем сегодняшний день при первой загрузке
+        _dayItemsByDay.value = grouped.mapValues { (_, dayEvents) ->
+            val eventLocations = response.embedded?.eventLocations ?: emptyList()
+            val eventRooms = response.embedded?.eventRooms ?: emptyList()
+            val rooms = response.embedded?.rooms ?: emptyList()
+
+            buildDaySlotsUseCase(
+                dayEvents,
+                eventLocations = eventLocations,
+                eventRooms = eventRooms,
+                rooms = rooms
+            )
+        }
+
         if (_expandedDays.value.isEmpty() && grouped.isNotEmpty()) {
             val timeZone = TimeZone.currentSystemDefault()
             val today = Clock.System.now().toLocalDateTime(timeZone).date
@@ -185,7 +201,6 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
             if (todayKey in grouped.keys) {
                 _expandedDays.value = setOf(todayKey)
             } else {
-                // Если сегодня нет в списке, разворачиваем первый день
                 _expandedDays.value = setOf(grouped.keys.first())
             }
         }
@@ -207,7 +222,7 @@ class ScheduleViewModel(private val scheduleRepository: ScheduleRepository,
         val daysShort = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
         val months = listOf("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
 
-        val dayOfWeek = localDate.dayOfWeek.isoDayNumber - 1 // 0 = Понедельник
+        val dayOfWeek = localDate.dayOfWeek.isoDayNumber - 1
         val dayShort = daysShort[dayOfWeek]
         val monthName = months[localDate.month.number - 1]
 

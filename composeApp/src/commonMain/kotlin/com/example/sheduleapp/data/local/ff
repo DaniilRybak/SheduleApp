@@ -1,0 +1,895 @@
+{
+    "_embedded": {
+        "events": [
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 19",
+                "description": null,
+                "typeId": "SEMI",
+                "formatId": "SEMI_OTHER",
+                "start": "2026-03-05T13:45:00+03:00",
+                "end": "2026-03-05T15:20:00+03:00",
+                "startsAtLocal": "2026-03-05T13:45:00",
+                "endsAtLocal": "2026-03-05T15:20:00",
+                "startsAt": "2026-03-05T13:45:00",
+                "endsAt": "2026-03-05T15:20:00",
+                "holdingStatus": {
+                    "id": "DRAFT",
+                    "name": "Неизвестно",
+                    "audModifiedAt": null,
+                    "audModifiedBy": null,
+                    "audModifiedBySystem": null
+                },
+                "repeatedLessonRealization": null,
+                "userRoleIds": [
+                    "STUDENT"
+                ],
+                "lessonTemplateId": "9c3c2458-0ca6-4f0d-b35e-2d31d05272cb",
+                "__version": 0,
+                "_links": {
+                    "self": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                    },
+                    "type": {
+                        "href": "/SEMI"
+                    },
+                    "format": {
+                        "href": "/SEMI_OTHER"
+                    },
+                    "time-zone": {
+                        "href": "/Europe/Moscow"
+                    },
+                    "grid": {
+                        "href": "/Grid.05"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "cycle-realization": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "lesson-realization": {
+                        "href": "/29a91232-be5b-43ab-92d8-1d65e0335cca"
+                    },
+                    "lesson-realization-team": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    },
+                    "lesson-realization-template": {
+                        "href": "/9c3c2458-0ca6-4f0d-b35e-2d31d05272cb"
+                    },
+                    "location": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/location"
+                    },
+                    "duration": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/duration"
+                    },
+                    "team": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/team"
+                    },
+                    "organizers": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/organizers"
+                    }
+                },
+                "id": "1b242cd1-fb73-4989-9b1c-ca518440999e"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 18",
+                "description": null,
+                "typeId": "SEMI",
+                "formatId": "SEMI_OTHER",
+                "start": "2026-03-05T11:55:00+03:00",
+                "end": "2026-03-05T13:30:00+03:00",
+                "startsAtLocal": "2026-03-05T11:55:00",
+                "endsAtLocal": "2026-03-05T13:30:00",
+                "startsAt": "2026-03-05T11:55:00",
+                "endsAt": "2026-03-05T13:30:00",
+                "holdingStatus": {
+                    "id": "DRAFT",
+                    "name": "Неизвестно",
+                    "audModifiedAt": null,
+                    "audModifiedBy": null,
+                    "audModifiedBySystem": null
+                },
+                "repeatedLessonRealization": null,
+                "userRoleIds": [
+                    "STUDENT"
+                ],
+                "lessonTemplateId": "a3aadcbc-c8d5-48c2-a4a6-8f91c45d6b78",
+                "__version": 0,
+                "_links": {
+                    "self": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                    },
+                    "type": {
+                        "href": "/SEMI"
+                    },
+                    "format": {
+                        "href": "/SEMI_OTHER"
+                    },
+                    "time-zone": {
+                        "href": "/Europe/Moscow"
+                    },
+                    "grid": {
+                        "href": "/Grid.05"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "cycle-realization": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "lesson-realization": {
+                        "href": "/97e1c195-2a1a-4bb6-8028-5eeb8e90ee5c"
+                    },
+                    "lesson-realization-team": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    },
+                    "lesson-realization-template": {
+                        "href": "/a3aadcbc-c8d5-48c2-a4a6-8f91c45d6b78"
+                    },
+                    "location": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/location"
+                    },
+                    "duration": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/duration"
+                    },
+                    "team": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/team"
+                    },
+                    "organizers": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/organizers"
+                    }
+                },
+                "id": "2bac05e3-dec9-44ce-961d-241aea25e94d"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 17",
+                "description": null,
+                "typeId": "SEMI",
+                "formatId": "SEMI_OTHER",
+                "start": "2026-03-05T09:50:00+03:00",
+                "end": "2026-03-05T11:25:00+03:00",
+                "startsAtLocal": "2026-03-05T09:50:00",
+                "endsAtLocal": "2026-03-05T11:25:00",
+                "startsAt": "2026-03-05T09:50:00",
+                "endsAt": "2026-03-05T11:25:00",
+                "holdingStatus": {
+                    "id": "DRAFT",
+                    "name": "Неизвестно",
+                    "audModifiedAt": null,
+                    "audModifiedBy": null,
+                    "audModifiedBySystem": null
+                },
+                "repeatedLessonRealization": null,
+                "userRoleIds": [
+                    "STUDENT"
+                ],
+                "lessonTemplateId": "f47acd99-a775-4a2d-aadf-b7bd32236e1c",
+                "__version": 0,
+                "_links": {
+                    "self": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                    },
+                    "type": {
+                        "href": "/SEMI"
+                    },
+                    "format": {
+                        "href": "/SEMI_OTHER"
+                    },
+                    "time-zone": {
+                        "href": "/Europe/Moscow"
+                    },
+                    "grid": {
+                        "href": "/Grid.05"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "cycle-realization": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "lesson-realization": {
+                        "href": "/607ef826-e34c-4a6b-b904-6bce359b74d9"
+                    },
+                    "lesson-realization-team": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    },
+                    "lesson-realization-template": {
+                        "href": "/f47acd99-a775-4a2d-aadf-b7bd32236e1c"
+                    },
+                    "location": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/location"
+                    },
+                    "duration": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/duration"
+                    },
+                    "team": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/team"
+                    },
+                    "organizers": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/organizers"
+                    }
+                },
+                "id": "55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 20",
+                "description": null,
+                "typeId": "SEMI",
+                "formatId": "SEMI_OTHER",
+                "start": "2026-03-05T15:50:00+03:00",
+                "end": "2026-03-05T17:25:00+03:00",
+                "startsAtLocal": "2026-03-05T15:50:00",
+                "endsAtLocal": "2026-03-05T17:25:00",
+                "startsAt": "2026-03-05T15:50:00",
+                "endsAt": "2026-03-05T17:25:00",
+                "holdingStatus": {
+                    "id": "DRAFT",
+                    "name": "Неизвестно",
+                    "audModifiedAt": null,
+                    "audModifiedBy": null,
+                    "audModifiedBySystem": null
+                },
+                "repeatedLessonRealization": null,
+                "userRoleIds": [
+                    "STUDENT"
+                ],
+                "lessonTemplateId": "354a1b36-b89f-4302-a72f-367c6c2c6d2e",
+                "__version": 0,
+                "_links": {
+                    "self": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                    },
+                    "type": {
+                        "href": "/SEMI"
+                    },
+                    "format": {
+                        "href": "/SEMI_OTHER"
+                    },
+                    "time-zone": {
+                        "href": "/Europe/Moscow"
+                    },
+                    "grid": {
+                        "href": "/Grid.05"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "cycle-realization": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "lesson-realization": {
+                        "href": "/a29a2670-cdef-4c93-902b-bd9c04e049c1"
+                    },
+                    "lesson-realization-team": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    },
+                    "lesson-realization-template": {
+                        "href": "/354a1b36-b89f-4302-a72f-367c6c2c6d2e"
+                    },
+                    "location": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/location"
+                    },
+                    "duration": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/duration"
+                    },
+                    "team": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/team"
+                    },
+                    "organizers": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/organizers"
+                    }
+                },
+                "id": "d38d2b4b-4183-4096-b56f-12688b511fbc"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 16",
+                "description": null,
+                "typeId": "SEMI",
+                "formatId": "SEMI_OTHER",
+                "start": "2026-03-05T08:00:00+03:00",
+                "end": "2026-03-05T09:35:00+03:00",
+                "startsAtLocal": "2026-03-05T08:00:00",
+                "endsAtLocal": "2026-03-05T09:35:00",
+                "startsAt": "2026-03-05T08:00:00",
+                "endsAt": "2026-03-05T09:35:00",
+                "holdingStatus": {
+                    "id": "DRAFT",
+                    "name": "Неизвестно",
+                    "audModifiedAt": null,
+                    "audModifiedBy": null,
+                    "audModifiedBySystem": null
+                },
+                "repeatedLessonRealization": null,
+                "userRoleIds": [
+                    "STUDENT"
+                ],
+                "lessonTemplateId": "f3cc523a-f8b4-463f-b602-5bdc4514b7bb",
+                "__version": 0,
+                "_links": {
+                    "self": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                    },
+                    "type": {
+                        "href": "/SEMI"
+                    },
+                    "format": {
+                        "href": "/SEMI_OTHER"
+                    },
+                    "time-zone": {
+                        "href": "/Europe/Moscow"
+                    },
+                    "grid": {
+                        "href": "/Grid.05"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "cycle-realization": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "lesson-realization": {
+                        "href": "/e97596be-06db-43eb-b9aa-bf084696fb39"
+                    },
+                    "lesson-realization-team": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    },
+                    "lesson-realization-template": {
+                        "href": "/f3cc523a-f8b4-463f-b602-5bdc4514b7bb"
+                    },
+                    "location": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/location"
+                    },
+                    "duration": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/duration"
+                    },
+                    "team": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/team"
+                    },
+                    "organizers": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/organizers"
+                    }
+                },
+                "id": "eb67a9df-943a-4090-a0a2-91bec9d0952e"
+            }
+        ],
+        "course-unit-realizations": [
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Военная подготовка",
+                "prototypeId": "847f7778-092a-4da7-8abf-420eacf6c5b6",
+                "_links": {
+                    "self": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    },
+                    "planning-period": {
+                        "href": "/26e1db44-e23d-484c-ab27-8d721e08a8e5"
+                    }
+                },
+                "id": "d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+            }
+        ],
+        "cycle-realizations": [
+            {
+                "name": "Практическое занятие",
+                "nameShort": "П",
+                "code": "Военная подготовка П-02",
+                "courseUnitRealizationNameShort": "Военная подготовка",
+                "_links": {
+                    "self": {
+                        "href": "/c7898129-bba1-402d-a983-920eba8c5ec2"
+                    },
+                    "course-unit-realization": {
+                        "href": "/d12847eb-9395-47bb-87c8-ed81ce18a2d9"
+                    }
+                },
+                "id": "c7898129-bba1-402d-a983-920eba8c5ec2"
+            }
+        ],
+        "lesson-realization-teams": [
+            {
+                "name": "Военная кафедра (Чт, 4 курс)",
+                "cycleRealizationId": "c7898129-bba1-402d-a983-920eba8c5ec2",
+                "_links": {
+                    "self": {
+                        "href": "/c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+                    }
+                },
+                "id": "c8918bfa-80a4-4ed8-a60f-c0d36b9e220f"
+            }
+        ],
+        "lesson-realizations": [
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 19",
+                "prototypeId": "b029cda0-3dfc-4a13-b533-e4bc7f9ccb33",
+                "ordinal": 18,
+                "_links": {
+                    "self": {
+                        "href": "/29a91232-be5b-43ab-92d8-1d65e0335cca"
+                    }
+                },
+                "id": "29a91232-be5b-43ab-92d8-1d65e0335cca"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 17",
+                "prototypeId": "644a3fa2-5b49-4272-a7ba-bc831b251acd",
+                "ordinal": 16,
+                "_links": {
+                    "self": {
+                        "href": "/607ef826-e34c-4a6b-b904-6bce359b74d9"
+                    }
+                },
+                "id": "607ef826-e34c-4a6b-b904-6bce359b74d9"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 18",
+                "prototypeId": "397f2c5b-503b-4953-8eb8-b698cdc74d36",
+                "ordinal": 17,
+                "_links": {
+                    "self": {
+                        "href": "/97e1c195-2a1a-4bb6-8028-5eeb8e90ee5c"
+                    }
+                },
+                "id": "97e1c195-2a1a-4bb6-8028-5eeb8e90ee5c"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 20",
+                "prototypeId": "eb7fcb62-318b-41ae-b25c-237d2edefa5d",
+                "ordinal": 19,
+                "_links": {
+                    "self": {
+                        "href": "/a29a2670-cdef-4c93-902b-bd9c04e049c1"
+                    }
+                },
+                "id": "a29a2670-cdef-4c93-902b-bd9c04e049c1"
+            },
+            {
+                "name": "Военная подготовка",
+                "nameShort": "Практическое занятие 16",
+                "prototypeId": "575b274a-2601-402d-9ae4-1e34137ff88d",
+                "ordinal": 15,
+                "_links": {
+                    "self": {
+                        "href": "/e97596be-06db-43eb-b9aa-bf084696fb39"
+                    }
+                },
+                "id": "e97596be-06db-43eb-b9aa-bf084696fb39"
+            }
+        ],
+        "event-locations": [
+            {
+                "eventId": "1b242cd1-fb73-4989-9b1c-ca518440999e",
+                "customLocation": null,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/location"
+                        },
+                        {
+                            "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                        }
+                    ],
+                    "event-rooms": {
+                        "href": "/ede93546-773c-4658-8212-bb2819e9feac"
+                    }
+                }
+            },
+            {
+                "eventId": "2bac05e3-dec9-44ce-961d-241aea25e94d",
+                "customLocation": null,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/location"
+                        },
+                        {
+                            "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                        }
+                    ],
+                    "event-rooms": {
+                        "href": "/4cafd47b-8ae0-4286-a107-1b8df5bd2ac4"
+                    }
+                }
+            },
+            {
+                "eventId": "55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5",
+                "customLocation": null,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/location"
+                        },
+                        {
+                            "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                        }
+                    ],
+                    "event-rooms": {
+                        "href": "/bcbf3384-66e8-4a51-ab04-b50126af29ce"
+                    }
+                }
+            },
+            {
+                "eventId": "d38d2b4b-4183-4096-b56f-12688b511fbc",
+                "customLocation": null,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/location"
+                        },
+                        {
+                            "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                        }
+                    ],
+                    "event-rooms": {
+                        "href": "/01aa800d-83f2-44eb-87a0-5777dd511649"
+                    }
+                }
+            },
+            {
+                "eventId": "eb67a9df-943a-4090-a0a2-91bec9d0952e",
+                "customLocation": null,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/location"
+                        },
+                        {
+                            "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                        }
+                    ],
+                    "event-rooms": {
+                        "href": "/88997028-4552-4c9b-8152-e05e4bd9feee"
+                    }
+                }
+            }
+        ],
+        "durations": [
+            {
+                "eventId": "1b242cd1-fb73-4989-9b1c-ca518440999e",
+                "value": 1,
+                "timeUnitId": "PAIR",
+                "minutes": 95,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/duration"
+                        },
+                        {
+                            "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                        }
+                    ],
+                    "time-unit": {
+                        "href": "/PAIR"
+                    }
+                }
+            },
+            {
+                "eventId": "2bac05e3-dec9-44ce-961d-241aea25e94d",
+                "value": 1,
+                "timeUnitId": "PAIR",
+                "minutes": 95,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/duration"
+                        },
+                        {
+                            "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                        }
+                    ],
+                    "time-unit": {
+                        "href": "/PAIR"
+                    }
+                }
+            },
+            {
+                "eventId": "55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5",
+                "value": 1,
+                "timeUnitId": "PAIR",
+                "minutes": 95,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/duration"
+                        },
+                        {
+                            "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                        }
+                    ],
+                    "time-unit": {
+                        "href": "/PAIR"
+                    }
+                }
+            },
+            {
+                "eventId": "d38d2b4b-4183-4096-b56f-12688b511fbc",
+                "value": 1,
+                "timeUnitId": "PAIR",
+                "minutes": 95,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/duration"
+                        },
+                        {
+                            "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                        }
+                    ],
+                    "time-unit": {
+                        "href": "/PAIR"
+                    }
+                }
+            },
+            {
+                "eventId": "eb67a9df-943a-4090-a0a2-91bec9d0952e",
+                "value": 1,
+                "timeUnitId": "PAIR",
+                "minutes": 95,
+                "_links": {
+                    "self": [
+                        {
+                            "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/duration"
+                        },
+                        {
+                            "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                        }
+                    ],
+                    "time-unit": {
+                        "href": "/PAIR"
+                    }
+                }
+            }
+        ],
+        "event-rooms": [
+            {
+                "_links": {
+                    "self": {
+                        "href": "/ede93546-773c-4658-8212-bb2819e9feac"
+                    },
+                    "event": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                    },
+                    "room": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    }
+                },
+                "id": "ede93546-773c-4658-8212-bb2819e9feac"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "/4cafd47b-8ae0-4286-a107-1b8df5bd2ac4"
+                    },
+                    "event": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                    },
+                    "room": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    }
+                },
+                "id": "4cafd47b-8ae0-4286-a107-1b8df5bd2ac4"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "/bcbf3384-66e8-4a51-ab04-b50126af29ce"
+                    },
+                    "event": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                    },
+                    "room": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    }
+                },
+                "id": "bcbf3384-66e8-4a51-ab04-b50126af29ce"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "/01aa800d-83f2-44eb-87a0-5777dd511649"
+                    },
+                    "event": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                    },
+                    "room": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    }
+                },
+                "id": "01aa800d-83f2-44eb-87a0-5777dd511649"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "/88997028-4552-4c9b-8152-e05e4bd9feee"
+                    },
+                    "event": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                    },
+                    "room": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    }
+                },
+                "id": "88997028-4552-4c9b-8152-e05e4bd9feee"
+            }
+        ],
+        "rooms": [
+            {
+                "name": "Военный учебный центр",
+                "nameShort": "Военный учебный центр",
+                "building": {
+                    "id": "0c887b3e-bcc9-4c22-bd67-a0505762955b",
+                    "name": "Таганрог, корпус Г",
+                    "nameShort": "Таганрог, корпус Г",
+                    "address": "г. Таганрог, ул. Энгельса, дом 1",
+                    "displayOrder": 1
+                },
+                "projectorAvailable": false,
+                "totalCapacity": 200,
+                "workingCapacity": 200,
+                "deletedAtUtc": null,
+                "_links": {
+                    "self": {
+                        "href": "/003070dc-cb05-46d9-a205-a262d068ca5e"
+                    },
+                    "type": {
+                        "href": "/b5a2abe3-5f1f-4697-bbfd-792ddd03d481"
+                    },
+                    "building": {
+                        "href": "/0c887b3e-bcc9-4c22-bd67-a0505762955b"
+                    }
+                },
+                "id": "003070dc-cb05-46d9-a205-a262d068ca5e"
+            }
+        ],
+        "buildings": [
+            {
+                "name": "Таганрог, корпус Г",
+                "nameShort": "Таганрог, корпус Г",
+                "address": "г. Таганрог, ул. Энгельса, дом 1",
+                "searchableAddress": "347922, Ростовская область, г. Таганрог, Некрасовский пер., 44",
+                "displayOrder": 1,
+                "_links": {
+                    "self": {
+                        "href": "/0c887b3e-bcc9-4c22-bd67-a0505762955b"
+                    }
+                },
+                "id": "0c887b3e-bcc9-4c22-bd67-a0505762955b"
+            }
+        ],
+        "event-teams": [
+            {
+                "eventId": "1b242cd1-fb73-4989-9b1c-ca518440999e",
+                "size": 285,
+                "_links": {
+                    "self": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/team"
+                    },
+                    "event": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                    }
+                }
+            },
+            {
+                "eventId": "2bac05e3-dec9-44ce-961d-241aea25e94d",
+                "size": 285,
+                "_links": {
+                    "self": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/team"
+                    },
+                    "event": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                    }
+                }
+            },
+            {
+                "eventId": "55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5",
+                "size": 285,
+                "_links": {
+                    "self": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/team"
+                    },
+                    "event": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                    }
+                }
+            },
+            {
+                "eventId": "d38d2b4b-4183-4096-b56f-12688b511fbc",
+                "size": 285,
+                "_links": {
+                    "self": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/team"
+                    },
+                    "event": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                    }
+                }
+            },
+            {
+                "eventId": "eb67a9df-943a-4090-a0a2-91bec9d0952e",
+                "size": 285,
+                "_links": {
+                    "self": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/team"
+                    },
+                    "event": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                    }
+                }
+            }
+        ],
+        "event-organizers": [
+            {
+                "eventId": "1b242cd1-fb73-4989-9b1c-ca518440999e",
+                "_links": {
+                    "self": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e/organizers"
+                    },
+                    "event": {
+                        "href": "/1b242cd1-fb73-4989-9b1c-ca518440999e"
+                    }
+                }
+            },
+            {
+                "eventId": "2bac05e3-dec9-44ce-961d-241aea25e94d",
+                "_links": {
+                    "self": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d/organizers"
+                    },
+                    "event": {
+                        "href": "/2bac05e3-dec9-44ce-961d-241aea25e94d"
+                    }
+                }
+            },
+            {
+                "eventId": "55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5",
+                "_links": {
+                    "self": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5/organizers"
+                    },
+                    "event": {
+                        "href": "/55a1ba2e-afdd-4bd7-a076-6a3c3ee945b5"
+                    }
+                }
+            },
+            {
+                "eventId": "d38d2b4b-4183-4096-b56f-12688b511fbc",
+                "_links": {
+                    "self": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc/organizers"
+                    },
+                    "event": {
+                        "href": "/d38d2b4b-4183-4096-b56f-12688b511fbc"
+                    }
+                }
+            },
+            {
+                "eventId": "eb67a9df-943a-4090-a0a2-91bec9d0952e",
+                "_links": {
+                    "self": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e/organizers"
+                    },
+                    "event": {
+                        "href": "/eb67a9df-943a-4090-a0a2-91bec9d0952e"
+                    }
+                }
+            }
+        ],
+        "event-attendees": [],
+        "persons": []
+    },
+    "page": {
+        "size": 1000,
+        "totalElements": 5,
+        "totalPages": 1,
+        "number": 0
+    }
+}
