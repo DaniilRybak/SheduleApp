@@ -9,6 +9,8 @@ import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.domain.model.DaySlotItem
 import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
+import com.example.sheduleapp.data.model.GroupDto
+import com.example.sheduleapp.data.repository.RemoteConfigRepository
 import com.example.sheduleapp.util.getStartOfWeek
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +23,19 @@ import kotlin.time.Clock
 
 class ScheduleViewModel(
     private val scheduleRepository: ScheduleRepository,
+    private val remoteConfigRepository: RemoteConfigRepository,
     private val searchUseCase: SearchScheduleEntriesUseCase = SearchScheduleEntriesUseCase(),
     private val buildDaySlotsUseCase: BuildDaySlotsUseCase = BuildDaySlotsUseCase()
 ) : ViewModel() {
+
+
+    private val _groups = MutableStateFlow<List<GroupDto>>(emptyList())
+    val groups = _groups.asStateFlow()
+
+    private val _groupQuery = MutableStateFlow("")
+    val groupQuery = _groupQuery.asStateFlow()
+
+    private val _selectedPersonId = MutableStateFlow("d65a68a2-bfcf-4484-93f1-69deb3873e6a")
 
     // Состояние расписания
     private val _scheduleState = MutableStateFlow<ScheduleResponse?>(null)
@@ -85,7 +97,7 @@ class ScheduleViewModel(
                     size = 50,
                     timeMin = timeMin,
                     timeMax = timeMax,
-                    attendeePersonId = listOf("d65a68a2-bfcf-4484-93f1-69deb3873e6a")
+                    attendeePersonId = listOf(_selectedPersonId.value)
                 )
 
                 val scheduleResponse = scheduleRepository.getSchedule(request)
@@ -130,6 +142,31 @@ class ScheduleViewModel(
         val timeZone = TimeZone.currentSystemDefault()
         val today = Clock.System.now().toLocalDateTime(timeZone).date
         fetchSchedule(today)
+    }
+
+    // Загрузить список групп
+    fun loadGroups() {
+        viewModelScope.launch {
+            try {
+                val groupsList = remoteConfigRepository.loadGroups()
+                _groups.value = groupsList
+            } catch (e: Exception) {
+                println("Error loading groups: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // Обновить строку поиска групп
+    fun onGroupQueryChanged(query: String) {
+        _groupQuery.value = query
+    }
+
+    // Выбрать группу и загрузить расписание
+    fun selectGroup(personId: String) {
+        _selectedPersonId.value = personId
+        _groupQuery.value = ""
+        fetchSchedule()
     }
 
     private fun updateWeekRangeText(weekStart: LocalDate, weekEnd: LocalDate) {

@@ -2,18 +2,16 @@ package com.example.sheduleapp
 
 import androidx.compose.ui.window.ComposeUIViewController
 import com.example.scheduleapp.di.commonModule
-import com.example.sheduleapp.presentation.screen.ScheduleScreen
-import com.example.sheduleapp.ui.theme.ScheduleAppTheme
-import org.koin.compose.KoinApplication
+import org.koin.core.context.startKoin
 import platform.UIKit.UIViewController
 
-fun MainViewController(): UIViewController =
-    ComposeUIViewController {
-        KoinApplication(
-            application = { modules(commonModule) }
-        ) {
-            ScheduleAppTheme {
-                ScheduleScreen()
-            }
+fun MainViewController(): UIViewController {
+    try {
+        startKoin {
+            modules(commonModule)
         }
+    } catch (_: Exception) {}
+    return ComposeUIViewController {
+        App()
     }
+}

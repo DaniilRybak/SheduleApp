@@ -1,4 +1,3 @@
-// composeApp/src/commonMain/kotlin/com/example/scheduleapp/data/repository/ScheduleRepository.kt
 package com.example.scheduleapp.data.repository
 
 import com.example.scheduleapp.data.model.ScheduleRequest

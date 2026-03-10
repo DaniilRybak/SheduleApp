@@ -27,7 +27,10 @@ import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 
 @Composable
-fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
+fun ScheduleScreen(
+    viewModel: ScheduleViewModel = koinInject(),
+    onOpenGroupSearch: () -> Unit = {}
+) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -49,13 +52,14 @@ fun ScheduleScreen(viewModel: ScheduleViewModel = koinInject()) {
             weekRangeText = weekRangeText,
             onPreviousWeek = { viewModel.goToPreviousWeek() },
             onNextWeek = { viewModel.goToNextWeek() },
-            onCurrentWeek = { viewModel.goToCurrentWeek() }
+            onCurrentWeek = { viewModel.goToCurrentWeek() },
+            onOpenGroupSearch = onOpenGroupSearch
         )
 
-        SearchBar(
-            query = searchQuery,
-            onQueryChange = { viewModel.updateSearchQuery(it) }
-        )
+//        SearchBar(
+//            query = searchQuery,
+//            onQueryChange = { viewModel.updateSearchQuery(it) }
+//        )
 
         when {
             isLoading -> LoadingContent()
@@ -76,7 +80,8 @@ private fun WeekNavigationBar(
     weekRangeText: String,
     onPreviousWeek: () -> Unit,
     onNextWeek: () -> Unit,
-    onCurrentWeek: () -> Unit
+    onCurrentWeek: () -> Unit,
+    onOpenGroupSearch: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -128,35 +133,43 @@ private fun WeekNavigationBar(
                 ) {
                     Text("▶", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
                 }
+
+                // Кнопка "Выбрать группу"
+                IconButton(onClick = onOpenGroupSearch) {
+                    Text(
+                        text = "🔍",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        placeholder = { Text("Поиск предметов...") },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                TextButton(onClick = { onQueryChange("") }) {
-                    Text("✕", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-        )
-    )
-}
+//@Composable
+//private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
+//    OutlinedTextField(
+//        value = query,
+//        onValueChange = onQueryChange,
+//        modifier = Modifier.fillMaxWidth().padding(16.dp),
+//        placeholder = { Text("Поиск предметов...") },
+//        trailingIcon = {
+//            if (query.isNotEmpty()) {
+//                TextButton(onClick = { onQueryChange("") }) {
+//                    Text("✕", style = MaterialTheme.typography.titleMedium)
+//                }
+//            }
+//        },
+//        singleLine = true,
+//        shape = RoundedCornerShape(12.dp),
+//        colors = OutlinedTextFieldDefaults.colors(
+//            focusedContainerColor = MaterialTheme.colorScheme.surface,
+//            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+//            focusedBorderColor = MaterialTheme.colorScheme.primary,
+//            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+//        )
+//    )
+//}
 
 @Composable
 private fun EventsByDayList(
