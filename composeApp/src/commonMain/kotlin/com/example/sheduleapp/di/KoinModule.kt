@@ -18,6 +18,7 @@ import com.example.scheduleapp.domain.usecase.GetWeekScheduleUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.scheduleapp.domain.usecase.UpdateSettingsUseCase
 import com.example.scheduleapp.presentation.ScheduleViewModel
+import com.example.sheduleapp.presentation.SettingsViewModel
 import com.example.sheduleapp.data.repository.RemoteConfigRepository
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -60,6 +61,7 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     singleOf(::ScheduleViewModel)
+    singleOf(::SettingsViewModel)
 }
 
 val commonModule = module {

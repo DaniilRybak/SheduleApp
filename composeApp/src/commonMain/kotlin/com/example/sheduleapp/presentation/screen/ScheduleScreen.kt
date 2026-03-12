@@ -29,7 +29,8 @@ import org.koin.compose.koinInject
 @Composable
 fun ScheduleScreen(
     viewModel: ScheduleViewModel = koinInject(),
-    onOpenGroupSearch: () -> Unit = {}
+    onOpenGroupSearch: () -> Unit = {},
+    onOpenSettings: () -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -53,7 +54,8 @@ fun ScheduleScreen(
             onPreviousWeek = { viewModel.goToPreviousWeek() },
             onNextWeek = { viewModel.goToNextWeek() },
             onCurrentWeek = { viewModel.goToCurrentWeek() },
-            onOpenGroupSearch = onOpenGroupSearch
+            onOpenGroupSearch = onOpenGroupSearch,
+            onOpenSettings = onOpenSettings
         )
 
 //        SearchBar(
@@ -81,7 +83,8 @@ private fun WeekNavigationBar(
     onPreviousWeek: () -> Unit,
     onNextWeek: () -> Unit,
     onCurrentWeek: () -> Unit,
-    onOpenGroupSearch: () -> Unit = {}
+    onOpenGroupSearch: () -> Unit = {},
+    onOpenSettings: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -132,14 +135,6 @@ private fun WeekNavigationBar(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text("▶", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
-                }
-
-                // Кнопка "Выбрать группу"
-                IconButton(onClick = onOpenGroupSearch) {
-                    Text(
-                        text = "🔍",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize
-                    )
                 }
             }
         }

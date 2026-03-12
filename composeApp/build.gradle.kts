@@ -52,6 +52,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            // Иконки Material Design
+            implementation(libs.material.icons.core)
+
             // Дата
             implementation(libs.kotlinx.datetime.v061)
 
