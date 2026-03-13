@@ -14,7 +14,12 @@ class ScheduleRepositoryImpl(
 ) : ScheduleRepository {
 
     override suspend fun getSchedule(request: ScheduleRequest): ScheduleResponse {
-        return api.getGroupSchedule(request)
+        val hasRoomFilter = !request.roomId.isNullOrEmpty()
+        return if (hasRoomFilter) {
+            api.getRoomSchedule(request)
+        } else {
+            api.getGroupSchedule(request)
+        }
     }
 
     override suspend fun getScheduleAsJsonString(request: ScheduleRequest): String {

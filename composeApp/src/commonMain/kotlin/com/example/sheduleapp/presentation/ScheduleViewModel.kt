@@ -28,6 +28,10 @@ class ScheduleViewModel(
     private val buildDaySlotsUseCase: BuildDaySlotsUseCase = BuildDaySlotsUseCase()
 ) : ViewModel() {
 
+    private enum class ScheduleTargetType {
+        PERSON,
+        ROOM
+    }
 
     private val _groups = MutableStateFlow<List<GroupDto>>(emptyList())
     val groups = _groups.asStateFlow()
@@ -36,6 +40,7 @@ class ScheduleViewModel(
     val groupQuery = _groupQuery.asStateFlow()
 
     private val _selectedPersonId = MutableStateFlow("d65a68a2-bfcf-4484-93f1-69deb3873e6a")
+    private val _selectedTargetType = MutableStateFlow(ScheduleTargetType.PERSON)
 
     // Состояние расписания
     private val _scheduleState = MutableStateFlow<ScheduleResponse?>(null)
@@ -93,18 +98,31 @@ class ScheduleViewModel(
 
                 println("Fetching schedule: $timeMin to $timeMax")
 
-                val request = ScheduleRequest(
-                    size = 50,
-                    timeMin = timeMin,
-                    timeMax = timeMax,
-                    attendeePersonId = listOf(_selectedPersonId.value)
-                )
+                val selectedId = _selectedPersonId.value
+                val request = when (_selectedTargetType.value) {
+                    ScheduleTargetType.PERSON -> ScheduleRequest(
+                        size = 50,
+                        timeMin = timeMin,
+                        timeMax = timeMax,
+                        attendeePersonId = listOf(selectedId)
+                    )
+
+                    ScheduleTargetType.ROOM -> ScheduleRequest(
+                        size = 50,
+                        timeMin = timeMin,
+                        timeMax = timeMax,
+                        roomId = listOf(selectedId)
+                    )
+                }
 
                 val scheduleResponse = scheduleRepository.getSchedule(request)
                 _scheduleState.value = scheduleResponse
                 filterEvents()
 
-                println("Schedule loaded successfully: ${scheduleResponse.embedded?.events?.size ?: 0} events")
+                println(
+                    "Schedule loaded successfully: ${scheduleResponse.embedded?.events?.size ?: 0} events, " +
+                        "targetType=${_selectedTargetType.value}"
+                )
 
             } catch (e: Exception) {
                 val errorMsg = when {
@@ -162,11 +180,30 @@ class ScheduleViewModel(
         _groupQuery.value = query
     }
 
-    // Выбрать группу и загрузить расписание
-    fun selectGroup(personId: String) {
+    fun selectGroup(personId: String, displayName: String? = null) {
         _selectedPersonId.value = personId
+        _selectedTargetType.value = if (isLikelyRoomName(displayName)) {
+            ScheduleTargetType.ROOM
+        } else {
+            ScheduleTargetType.PERSON
+        }
         _groupQuery.value = ""
         fetchSchedule()
+    }
+
+    fun selectRoom(roomId: String) {
+        _selectedPersonId.value = roomId
+        _selectedTargetType.value = ScheduleTargetType.ROOM
+        _groupQuery.value = ""
+        fetchSchedule()
+    }
+
+    private fun isLikelyRoomName(name: String?): Boolean {
+        if (name.isNullOrBlank()) return false
+
+        val normalized = name.trim()
+        val roomRegex = Regex("""^(?:[А-ЯA-Z]\s*-\s*\d{2,4}|\d{1,2}\s*-\s*\d{2,4}|ауд\.?\s*\d{2,4})$""", RegexOption.IGNORE_CASE)
+        return roomRegex.matches(normalized)
     }
 
     private fun updateWeekRangeText(weekStart: LocalDate, weekEnd: LocalDate) {

@@ -31,7 +31,6 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-
     ) {
 
         TopAppBar(

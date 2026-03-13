@@ -3,12 +3,9 @@ package com.example.scheduleapp.data.remote
 import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.client.statement.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -72,6 +69,12 @@ class ScheduleApi(private val httpClient: HttpClient) {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
+
+        if (!response.status.isSuccess()) {
+            val errorBody = response.bodyAsText()
+            throw IllegalStateException("API Error ${response.status}: $errorBody")
+        }
+
         val bodyText = response.bodyAsText()
         val rawJson = unwrapPossiblyQuotedJson(bodyText)
         logProcessedJson(rawJson)

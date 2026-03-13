@@ -24,3 +24,4 @@ Podfile.lock
 # Общее
 *.swp
 *~
+/composeApp/src/commonMain/kotlin/com/example/sheduleapp/data/local/ictis

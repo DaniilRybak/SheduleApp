@@ -51,14 +51,10 @@ fun GroupSearchScreen(
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onBack) {
-                Text("◀ Назад", fontSize = 14.sp)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Выбрать группу",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                text = "Выбрать группу или аудиторию",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -68,10 +64,10 @@ fun GroupSearchScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         if (query.isEmpty()) {
             Text(
-                text = "Начните вводить название группы",
+                text = "Начните вводить название группы или аудитории",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 32.dp),
@@ -80,7 +76,7 @@ fun GroupSearchScreen(
             )
         } else if (filteredGroups.isEmpty()) {
             Text(
-                text = "Группы не найдены",
+                text = "Ничего не найдено",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 32.dp),
@@ -95,12 +91,12 @@ fun GroupSearchScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(filteredGroups) { group ->
-            GroupCard(
-                group = group,
-                onSelect = {
-                    viewModel.selectGroup(group.personId)
-                }
-            )
+                    GroupCard(
+                        group = group,
+                        onSelect = {
+                            viewModel.selectGroup(group.personId, group.name)
+                        }
+                    )
                 }
             }
         }
@@ -120,7 +116,7 @@ private fun SearchTextField(
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp),
         placeholder = {
-            Text("Поиск группы...")
+            Text("Поиск группы или аудитории...")
         },
         leadingIcon = {
             Text("🔍")
@@ -185,6 +181,3 @@ private fun GroupCard(
         }
     }
 }
-
-
-
