@@ -42,14 +42,6 @@ fun SettingsScreen(
                     fontWeight = FontWeight.Bold
                 )
             },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Text(
-                        "◀",
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize
-                    )
-                }
-            },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 titleContentColor = MaterialTheme.colorScheme.onSurface
