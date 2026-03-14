@@ -18,8 +18,10 @@ import com.example.scheduleapp.domain.usecase.GetWeekScheduleUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.scheduleapp.domain.usecase.UpdateSettingsUseCase
 import com.example.scheduleapp.presentation.ScheduleViewModel
-import com.example.sheduleapp.presentation.SettingsViewModel
+import com.example.sheduleapp.data.ScheduleLocalDataSource
+import com.example.sheduleapp.data.datasource.DataStoreScheduleSource
 import com.example.sheduleapp.data.repository.RemoteConfigRepository
+import com.example.sheduleapp.presentation.SettingsViewModel
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
@@ -39,7 +41,7 @@ val networkModule = module {
         }
     }
     singleOf(::ScheduleApi)
-    single<ScheduleRepository> { ScheduleRepositoryImpl(get()) }
+    single<ScheduleRepository> { ScheduleRepositoryImpl(get(), get()) }
     singleOf(::RemoteConfigRepository)
 }
 
@@ -48,6 +50,10 @@ val dataModule = module {
     single<PrefsRepository> { PrefsRepositoryImpl() }
     single<ScheduleEntryRepository> { ScheduleEntryRepositoryImpl() }
     single<WeekScheduleRepository> { WeekScheduleRepositoryImpl(get()) }
+}
+
+val storageModule = module {
+    single<ScheduleLocalDataSource> { DataStoreScheduleSource(get()) }
 }
 
 val useCaseModule = module {
@@ -65,5 +71,5 @@ val viewModelModule = module {
 }
 
 val commonModule = module {
-    includes(networkModule, dataModule, useCaseModule, viewModelModule)
+    includes(networkModule, dataModule, storageModule, useCaseModule, viewModelModule)
 }

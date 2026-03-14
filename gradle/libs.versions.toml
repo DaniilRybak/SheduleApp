@@ -22,6 +22,7 @@ kotlinxSerializationJson = "1.10.0"
 ktorClientCore = "3.4.0"
 material3 = "1.10.0-alpha05"
 materialIconsCore = "1.7.3"
+okio = "3.17.0"
 voyagerNavigator = "1.1.0-beta03"
 
 [libraries]
@@ -58,6 +59,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "coroutinesExtensions" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "coroutinesExtensions" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerNavigator" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyagerNavigator" }

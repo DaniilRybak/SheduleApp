@@ -4,8 +4,8 @@ import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -13,6 +13,8 @@ class ScheduleApi(private val httpClient: HttpClient) {
 
     companion object {
         private const val BASE_URL = "https://schedule.rdcenter.ru"
+        private const val GROUP_SCHEDULE_PATH = "$BASE_URL/api/proxy/events/search"
+        private const val ROOM_SCHEDULE_PATH = "$BASE_URL/api/ictis"
     }
 
     private val json = Json {
@@ -47,8 +49,8 @@ class ScheduleApi(private val httpClient: HttpClient) {
         println(pretty)
     }
 
-    suspend fun getGroupSchedule(request: ScheduleRequest): ScheduleResponse {
-        val response = httpClient.post("$BASE_URL/api/proxy/events/search") {
+    private suspend fun fetchScheduleJson(url: String, request: ScheduleRequest): String {
+        val response = httpClient.post(url) {
             contentType(ContentType.Application.Json)
             setBody(request)
         }
@@ -58,35 +60,27 @@ class ScheduleApi(private val httpClient: HttpClient) {
             throw IllegalStateException("API Error ${response.status}: $errorBody")
         }
 
-        val bodyText = response.bodyAsText()
-        val rawJson = unwrapPossiblyQuotedJson(bodyText)
+        return unwrapPossiblyQuotedJson(response.bodyAsText())
+    }
+
+    suspend fun getGroupSchedule(request: ScheduleRequest): ScheduleResponse {
+        val rawJson = fetchScheduleJson(GROUP_SCHEDULE_PATH, request)
         logProcessedJson(rawJson)
         return json.decodeFromString(rawJson)
     }
 
     suspend fun getRoomSchedule(request: ScheduleRequest): ScheduleResponse {
-        val response = httpClient.post("$BASE_URL/api/ictis") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-
-        if (!response.status.isSuccess()) {
-            val errorBody = response.bodyAsText()
-            throw IllegalStateException("API Error ${response.status}: $errorBody")
-        }
-
-        val bodyText = response.bodyAsText()
-        val rawJson = unwrapPossiblyQuotedJson(bodyText)
+        val rawJson = fetchScheduleJson(ROOM_SCHEDULE_PATH, request)
         logProcessedJson(rawJson)
         return json.decodeFromString(rawJson)
     }
 
     suspend fun getScheduleAsJsonString(request: ScheduleRequest): String {
-        val response = httpClient.post("$BASE_URL/api/proxy/events/search") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
+        val url = if (!request.roomId.isNullOrEmpty()) {
+            ROOM_SCHEDULE_PATH
+        } else {
+            GROUP_SCHEDULE_PATH
         }
-        return unwrapPossiblyQuotedJson(response.bodyAsText())
+        return fetchScheduleJson(url, request)
     }
-
 }
