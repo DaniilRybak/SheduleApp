@@ -7,6 +7,7 @@ import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.domain.model.DaySlotItem
+import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.sheduleapp.data.model.GroupDto
@@ -24,6 +25,7 @@ import kotlin.time.Clock
 class ScheduleViewModel(
     private val scheduleRepository: ScheduleRepository,
     private val remoteConfigRepository: RemoteConfigRepository,
+    private val favoritesRepository: FavoritesRepository,
     private val searchUseCase: SearchScheduleEntriesUseCase = SearchScheduleEntriesUseCase(),
     private val buildDaySlotsUseCase: BuildDaySlotsUseCase = BuildDaySlotsUseCase()
 ) : ViewModel() {
@@ -41,6 +43,9 @@ class ScheduleViewModel(
 
     private val _selectedPersonId = MutableStateFlow("d65a68a2-bfcf-4484-93f1-69deb3873e6a")
     private val _selectedTargetType = MutableStateFlow(ScheduleTargetType.PERSON)
+
+    private val _favoriteGroupIds = MutableStateFlow<Set<String>>(emptySet())
+    val favoriteGroupIds = _favoriteGroupIds.asStateFlow()
 
     // Состояние расписания
     private val _scheduleState = MutableStateFlow<ScheduleResponse?>(null)
@@ -76,6 +81,10 @@ class ScheduleViewModel(
 
     private val _expandedDays = MutableStateFlow<Set<String>>(emptySet())
     val expandedDays = _expandedDays.asStateFlow()
+
+    init {
+        observeFavorites()
+    }
 
     fun fetchSchedule(date: LocalDate? = null) {
         viewModelScope.launch {
@@ -196,6 +205,24 @@ class ScheduleViewModel(
         _selectedTargetType.value = ScheduleTargetType.ROOM
         _groupQuery.value = ""
         fetchSchedule()
+    }
+
+    fun toggleFavoriteGroup(group: GroupDto) {
+        viewModelScope.launch {
+            if (group.personId in _favoriteGroupIds.value) {
+                favoritesRepository.removeFavoriteGroup(group.personId)
+            } else {
+                favoritesRepository.addFavoriteGroup(group.personId)
+            }
+        }
+    }
+
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            favoritesRepository.favoriteGroupIds.collect { ids ->
+                _favoriteGroupIds.value = ids
+            }
+        }
     }
 
     private fun isLikelyRoomName(name: String?): Boolean {

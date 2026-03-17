@@ -27,12 +27,17 @@ fun GroupSearchScreen(
 ) {
     val groups by viewModel.groups.collectAsState()
     val query by viewModel.groupQuery.collectAsState()
+    val favoriteIds by viewModel.favoriteGroupIds.collectAsState()
 
     val filteredGroups = if (query.isEmpty()) {
         emptyList()
     } else {
         groups.filter { it.name.contains(query, ignoreCase = true) }
     }
+
+    val favoriteGroups = groups
+        .filter { it.personId in favoriteIds }
+        .sortedBy { it.name }
 
     LaunchedEffect(Unit) {
         viewModel.loadGroups()
@@ -66,14 +71,43 @@ fun GroupSearchScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         if (query.isEmpty()) {
-            Text(
-                text = "Начните вводить название группы или аудитории",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 32.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
-            )
+            if (favoriteGroups.isEmpty()) {
+                Text(
+                    text = "Начните вводить название группы или аудитории",
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 32.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            } else {
+                Text(
+                    text = "Избранные",
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(favoriteGroups) { group ->
+                        GroupCard(
+                            group = group,
+                            isFavorite = true,
+                            onSelect = {
+                                viewModel.selectGroup(group.personId, group.name)
+                            },
+                            onToggleFavorite = {
+                                viewModel.toggleFavoriteGroup(group)
+                            }
+                        )
+                    }
+                }
+            }
         } else if (filteredGroups.isEmpty()) {
             Text(
                 text = "Ничего не найдено",
@@ -93,8 +127,12 @@ fun GroupSearchScreen(
                 items(filteredGroups) { group ->
                     GroupCard(
                         group = group,
+                        isFavorite = group.personId in favoriteIds,
                         onSelect = {
                             viewModel.selectGroup(group.personId, group.name)
+                        },
+                        onToggleFavorite = {
+                            viewModel.toggleFavoriteGroup(group)
                         }
                     )
                 }
@@ -141,7 +179,9 @@ private fun SearchTextField(
 @Composable
 private fun GroupCard(
     group: GroupDto,
-    onSelect: () -> Unit
+    isFavorite: Boolean,
+    onSelect: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -172,12 +212,15 @@ private fun GroupCard(
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-            Text(
-                text = ">",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onToggleFavorite) {
+                    Text(
+                        text = if (isFavorite) "★" else "☆",
+                        fontSize = 20.sp,
+                        color = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }

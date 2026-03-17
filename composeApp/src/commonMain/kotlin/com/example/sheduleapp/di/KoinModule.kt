@@ -1,5 +1,6 @@
 package com.example.scheduleapp.di
 
+import com.example.scheduleapp.data.local.FavoritesRepositoryImpl
 import com.example.scheduleapp.data.local.PrefsRepository
 import com.example.scheduleapp.data.local.PrefsRepositoryImpl
 import com.example.scheduleapp.data.local.SettingsRepositoryImpl
@@ -8,6 +9,7 @@ import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.data.repository.ScheduleRepositoryImpl
 import com.example.scheduleapp.data.repository.ScheduleEntryRepositoryImpl
 import com.example.scheduleapp.data.repository.WeekScheduleRepositoryImpl
+import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.scheduleapp.domain.repository.ScheduleEntryRepository
 import com.example.scheduleapp.domain.repository.SettingsRepository
 import com.example.scheduleapp.domain.repository.WeekScheduleRepository
@@ -48,6 +50,7 @@ val networkModule = module {
 val dataModule = module {
     single<SettingsRepository> { SettingsRepositoryImpl() }
     single<PrefsRepository> { PrefsRepositoryImpl() }
+    single<FavoritesRepository> { FavoritesRepositoryImpl(get()) }
     single<ScheduleEntryRepository> { ScheduleEntryRepositoryImpl() }
     single<WeekScheduleRepository> { WeekScheduleRepositoryImpl(get()) }
 }

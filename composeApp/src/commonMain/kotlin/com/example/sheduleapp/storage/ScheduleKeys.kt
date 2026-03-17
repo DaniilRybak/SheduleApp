@@ -2,6 +2,7 @@ package com.example.sheduleapp.storage
 
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 
 object ScheduleKeys {
     private fun normalize(cacheKey: String): String =
@@ -12,4 +13,6 @@ object ScheduleKeys {
 
     fun lastUpdateTime(cacheKey: String) =
         longPreferencesKey("schedule_last_update_${normalize(cacheKey)}")
+
+    val favoriteGroupIds = stringSetPreferencesKey("favorite_group_ids")
 }
