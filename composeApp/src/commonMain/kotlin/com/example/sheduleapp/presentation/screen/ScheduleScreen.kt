@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,6 +24,7 @@ import com.example.scheduleapp.di.commonModule
 import com.example.scheduleapp.domain.model.DaySlotItem
 import com.example.scheduleapp.domain.model.TimeSlot
 import com.example.scheduleapp.presentation.ScheduleViewModel
+import com.example.sheduleapp.data.model.GroupDto
 import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
@@ -38,9 +41,16 @@ fun ScheduleScreen(
     val weekRangeText by viewModel.weekRangeText.collectAsState()
     val dayItemsByDay by viewModel.dayItemsByDay.collectAsState()
     val expandedDays by viewModel.expandedDays.collectAsState()
+    val groups by viewModel.groups.collectAsState()
+    val favoriteGroupIds by viewModel.favoriteGroupIds.collectAsState()
+
+    val favoriteGroups = groups
+        .filter { it.personId in favoriteGroupIds }
+        .sortedBy { it.name }
 
     LaunchedEffect(Unit) {
         viewModel.fetchSchedule()
+        viewModel.loadGroups()
     }
 
     Column(
@@ -55,6 +65,10 @@ fun ScheduleScreen(
             onNextWeek = { viewModel.goToNextWeek() },
             onCurrentWeek = { viewModel.goToCurrentWeek() },
             onOpenGroupSearch = onOpenGroupSearch,
+            favoriteGroups = favoriteGroups,
+            onFavoriteClick = { group ->
+                viewModel.selectGroup(group.personId, group.name)
+            },
             onOpenSettings = onOpenSettings
         )
 
@@ -84,6 +98,8 @@ private fun WeekNavigationBar(
     onNextWeek: () -> Unit,
     onCurrentWeek: () -> Unit,
     onOpenGroupSearch: () -> Unit = {},
+    favoriteGroups: List<GroupDto>,
+    onFavoriteClick: (GroupDto) -> Unit = {},
     onOpenSettings: () -> Unit = {}
 ) {
     Surface(
@@ -100,6 +116,52 @@ private fun WeekNavigationBar(
 //            )
 //
 //            Spacer(modifier = Modifier.height(12.dp))
+
+            if (favoriteGroups.isNotEmpty()) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(favoriteGroups, key = { it.personId }) { group ->
+                        AssistChip(
+                            onClick = { onFavoriteClick(group) },
+                            label = {
+                                Text(
+                                    text = group.name,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            modifier = Modifier.height(32.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                labelColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            border = null
+                        )
+                    }
+
+                    item {
+                        AssistChip(
+                            onClick = onOpenGroupSearch,
+                            label = {
+                                Text(
+                                    text = "+ Добавить",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            },
+                            modifier = Modifier.height(32.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            border = null
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
