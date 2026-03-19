@@ -14,5 +14,7 @@ object ScheduleKeys {
     fun lastUpdateTime(cacheKey: String) =
         longPreferencesKey("schedule_last_update_${normalize(cacheKey)}")
 
+    val displayMode = stringPreferencesKey("display_mode")
+
     val favoriteGroupIds = stringSetPreferencesKey("favorite_group_ids")
 }
