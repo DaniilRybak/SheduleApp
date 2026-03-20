@@ -86,6 +86,9 @@ class ScheduleViewModel(
     private val _expandedDays = MutableStateFlow<Set<String>>(emptySet())
     val expandedDays = _expandedDays.asStateFlow()
 
+    private val _showMilitaryLessons = MutableStateFlow(false)
+    val showMilitaryLessons = _showMilitaryLessons.asStateFlow()
+
     init {
         observeFavorites()
         observeDisplayMode()
@@ -270,6 +273,11 @@ class ScheduleViewModel(
         filterEvents()
     }
 
+    fun setShowMilitaryLessons(show: Boolean) {
+        _showMilitaryLessons.value = show
+        filterEvents()
+    }
+
     fun toggleDayExpansion(dayKey: String) {
         _expandedDays.value = if (dayKey in _expandedDays.value) {
             _expandedDays.value - dayKey
@@ -279,9 +287,48 @@ class ScheduleViewModel(
     }
 
     private fun filterEvents() {
-        val allEvents = _scheduleState.value?.embedded?.events ?: emptyList()
-        _filteredEvents.value = searchUseCase(searchQuery.value, allEvents)
+        val response = _scheduleState.value
+        val allEvents = response?.embedded?.events ?: emptyList()
+        val courseById = response?.embedded?.courseUnitRealizations.orEmpty().associateBy { it.id }
+
+        val filteredByDiscipline = allEvents.filter { event ->
+            val courseName = extractCourseName(event, courseById)
+            val eventName = event.name.orEmpty()
+
+            if (isVpkDiscipline(courseName, eventName)) return@filter false
+            if (!_showMilitaryLessons.value && isMilitaryDiscipline(courseName, eventName)) return@filter false
+            true
+        }
+
+        _filteredEvents.value = searchUseCase(searchQuery.value, filteredByDiscipline)
         groupEventsByDay()
+    }
+
+    private fun extractCourseName(
+        event: EventDto,
+        courseById: Map<String, com.example.scheduleapp.data.model.CourseUnitRealizationDto>
+    ): String {
+        val courseId = event.links?.courseUnitRealization?.href?.substringAfterLast("/")
+        return courseId?.let { courseById[it]?.name }.orEmpty()
+    }
+
+    private fun isVpkDiscipline(courseName: String, eventName: String): Boolean {
+        val haystack = "${courseName.lowercase()} ${eventName.lowercase()}"
+        return haystack.contains("впк")
+    }
+
+    private fun isMilitaryDiscipline(courseName: String, eventName: String): Boolean {
+        val haystack = "${courseName.lowercase()} ${eventName.lowercase()}"
+        val militaryKeywords = listOf(
+            "военно-патриот",
+            "военная подготовка",
+            "строевая",
+            "огневая",
+            "тактическая",
+            "военное дело",
+            "военн"
+        )
+        return militaryKeywords.any { haystack.contains(it) }
     }
 
     private fun groupEventsByDay() {

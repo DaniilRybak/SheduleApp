@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.example.sheduleapp.presentation.SettingsViewModel
 import com.example.scheduleapp.domain.model.AppTheme
 import com.example.scheduleapp.domain.model.DisplayMode
+import com.example.scheduleapp.presentation.ScheduleViewModel
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +27,8 @@ fun SettingsScreen(
     onBack: () -> Unit = {}
 ) {
     val settings by viewModel.settings.collectAsState()
+    val scheduleViewModel: ScheduleViewModel = koinInject()
+    val showMilitaryLessons by scheduleViewModel.showMilitaryLessons.collectAsState()
 
     Column(
         modifier = Modifier
@@ -114,6 +117,16 @@ fun SettingsScreen(
                     subtitle = "Если выключить, будут видны только пары без пустых промежутков",
                     isChecked = settings.showWindows,
                     onCheckedChange = { viewModel.updateShowWindows(it) }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                SettingsSwitchCard(
+                    title = "Показывать военные пары",
+                    subtitle = "Если выключено, военные дисциплины скрываются",
+                    isChecked = showMilitaryLessons,
+                    onCheckedChange = { scheduleViewModel.setShowMilitaryLessons(it) }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

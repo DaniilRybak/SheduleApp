@@ -1,6 +1,7 @@
 package com.example.sheduleapp
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -48,8 +49,11 @@ fun App() {
                     }
                 }
             }
-        ) {
-            Box() {
+        ) { innerPadding ->
+            Box(
+                modifier = androidx.compose.ui.Modifier
+                    .padding(bottom = innerPadding.calculateBottomPadding())
+            ) {
                 when (currentScreen) {
                     Screen.Schedule -> ScheduleScreenWithNavigation(
                         onOpenGroupSearch = { currentScreen = Screen.GroupSearch },

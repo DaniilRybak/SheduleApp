@@ -1,7 +1,6 @@
 package com.example.sheduleapp.presentation.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +29,7 @@ import com.example.scheduleapp.domain.model.DisplayMode
 import com.example.scheduleapp.domain.model.TimeSlot
 import com.example.scheduleapp.presentation.ScheduleViewModel
 import com.example.sheduleapp.data.model.GroupDto
+import com.example.sheduleapp.domain.all
 import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
@@ -129,15 +128,6 @@ private fun WeekNavigationBar(
         shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-//            Text(
-//                text = "Расписание",
-//                style = MaterialTheme.typography.headlineSmall,
-//                fontWeight = FontWeight.Bold,
-//                color = MaterialTheme.colorScheme.onPrimaryContainer
-//            )
-//
-//            Spacer(modifier = Modifier.height(12.dp))
-
             if (favoriteGroups.isNotEmpty()) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(favoriteGroups, key = { it.personId }) { group ->
@@ -224,31 +214,6 @@ private fun WeekNavigationBar(
     }
 }
 
-//@Composable
-//private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-//    OutlinedTextField(
-//        value = query,
-//        onValueChange = onQueryChange,
-//        modifier = Modifier.fillMaxWidth().padding(16.dp),
-//        placeholder = { Text("Поиск предметов...") },
-//        trailingIcon = {
-//            if (query.isNotEmpty()) {
-//                TextButton(onClick = { onQueryChange("") }) {
-//                    Text("✕", style = MaterialTheme.typography.titleMedium)
-//                }
-//            }
-//        },
-//        singleLine = true,
-//        shape = RoundedCornerShape(12.dp),
-//        colors = OutlinedTextFieldDefaults.colors(
-//            focusedContainerColor = MaterialTheme.colorScheme.surface,
-//            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-//            focusedBorderColor = MaterialTheme.colorScheme.primary,
-//            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-//        )
-//    )
-//}
-
 @Composable
 private fun EventsByDayList(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
@@ -283,7 +248,7 @@ private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 120.dp)
+            .padding(all = 8.dp)
             .horizontalScroll(horizontalScroll)
             .verticalScroll(verticalScroll)
     ) {
