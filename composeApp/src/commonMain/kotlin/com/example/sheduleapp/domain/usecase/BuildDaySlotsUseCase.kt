@@ -1,8 +1,10 @@
 package com.example.scheduleapp.domain.usecase
 
+import com.example.scheduleapp.data.model.EventAttendeeDto
 import com.example.scheduleapp.data.model.EventDto
 import com.example.scheduleapp.data.model.EventLocationDto
 import com.example.scheduleapp.data.model.EventRoomDto
+import com.example.scheduleapp.data.model.PersonDto
 import com.example.scheduleapp.data.model.RoomDto
 import com.example.scheduleapp.domain.model.DaySlotItem
 import com.example.scheduleapp.domain.model.TimeSlot
@@ -15,11 +17,17 @@ class BuildDaySlotsUseCase {
         slots: List<TimeSlot> = TimeSlot.defaultSlots(),
         eventLocations: List<EventLocationDto> = emptyList(),
         eventRooms: List<EventRoomDto> = emptyList(),
-        rooms: List<RoomDto> = emptyList()
-    ): List<DaySlotItem> {
+        rooms: List<RoomDto> = emptyList(),
+        eventAttendees: List<EventAttendeeDto> = emptyList(),
+        persons: List<PersonDto> = emptyList()
+        ): List<DaySlotItem> {
         if (slots.isEmpty()) {
             return events.map {
-                DaySlotItem.UnplacedLesson(it, "Сетка пар не задана")
+                DaySlotItem.UnplacedLesson(
+                    it,
+                    "Сетка пар не задана",
+                    teacherName = getTeacherName(it.id, eventAttendees, persons)
+                )
             }
         }
 
@@ -38,7 +46,8 @@ class BuildDaySlotsUseCase {
                     event,
                     "Некорректное время пары",
                     roomName = eventWithLocation.roomName,
-                    customLocation = eventWithLocation.customLocation
+                    customLocation = eventWithLocation.customLocation,
+                    teacherName = getTeacherName(event.id, eventAttendees, persons)
                 )
                 return@forEach
             }
@@ -63,7 +72,8 @@ class BuildDaySlotsUseCase {
                     event,
                     "Пара вне сетки слотов",
                     roomName = eventWithLocation.roomName,
-                    customLocation = eventWithLocation.customLocation
+                    customLocation = eventWithLocation.customLocation,
+                    teacherName = getTeacherName(event.id, eventAttendees, persons)
                 )
             } else {
                 bucket[bestSlot.id]?.add(event)
@@ -84,7 +94,8 @@ class BuildDaySlotsUseCase {
                         slot,
                         lesson,
                         roomName = eventWithLocation.roomName,
-                        customLocation = eventWithLocation.customLocation
+                        customLocation = eventWithLocation.customLocation,
+                        teacherName = getTeacherName(lesson.id, eventAttendees, persons)
                     )
                 }
                 else -> {
@@ -92,7 +103,10 @@ class BuildDaySlotsUseCase {
                         val eventWithLocation = locationMapper(lesson, eventLocations, eventRooms, rooms)
                         lesson.id to (eventWithLocation.roomName ?: eventWithLocation.customLocation)
                     }
-                    result += DaySlotItem.ConflictSlot(slot, lessons, locations)
+                    val teachers = lessons.associate { lesson ->
+                        lesson.id to getTeacherName(lesson.id, eventAttendees, persons)
+                    }
+                    result += DaySlotItem.ConflictSlot(slot, lessons, locations, teachers)
                 }
             }
         }
@@ -123,5 +137,14 @@ class BuildDaySlotsUseCase {
         val left = maxOf(aStart, bStart)
         val right = minOf(aEnd, bEnd)
         return (right - left).coerceAtLeast(0)
+    }
+
+    private fun getTeacherName(eventId: String, eventAttendees: List<EventAttendeeDto>, persons: List<PersonDto>): String? {
+        val attendee = eventAttendees.find {
+            it.roleId == "TEACH" && it.links?.event?.href?.substringAfterLast("/") == eventId
+        }
+        val personId = attendee?.links?.person?.href?.substringAfterLast("/")
+        val person = persons.find { it.id == personId }
+        return person?.fullName
     }
 }

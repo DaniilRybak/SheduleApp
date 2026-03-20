@@ -7,7 +7,8 @@ sealed interface DaySlotItem {
         val slot: TimeSlot,
         val lesson: EventDto,
         val roomName: String? = null,
-        val customLocation: String? = null
+        val customLocation: String? = null,
+        val teacherName: String? = null
     ) : DaySlotItem
 
     data class WindowSlot(
@@ -17,14 +18,16 @@ sealed interface DaySlotItem {
     data class ConflictSlot(
         val slot: TimeSlot,
         val lessons: List<EventDto>,
-        val locations: Map<String, String?> = emptyMap()
+        val locations: Map<String, String?> = emptyMap(),
+        val teachers: Map<String, String?> = emptyMap()
     ) : DaySlotItem
 
     data class UnplacedLesson(
         val lesson: EventDto,
         val reason: String,
         val roomName: String? = null,
-        val customLocation: String? = null
+        val customLocation: String? = null,
+        val teacherName: String? = null
     ) : DaySlotItem
 }
 

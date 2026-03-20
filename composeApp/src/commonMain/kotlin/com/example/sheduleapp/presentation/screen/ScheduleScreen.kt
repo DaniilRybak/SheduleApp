@@ -364,7 +364,8 @@ private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
                     UnplacedLessonCardWithLocation(
                         event = item.lesson,
                         roomName = item.roomName,
-                        customLocation = item.customLocation
+                        customLocation = item.customLocation,
+                        teacherName = item.teacherName
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                 }
@@ -411,11 +412,15 @@ private fun GridCell(
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(
-                            text = formatEventTime(item.lesson.start, item.lesson.end),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (item.teacherName != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = item.teacherName,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                         if (item.roomName != null || item.customLocation != null) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -472,14 +477,21 @@ private fun DaySection(
                         is DaySlotItem.LessonSlot -> EventCardWithLocation(
                             item.lesson,
                             roomName = item.roomName,
-                            customLocation = item.customLocation
+                            customLocation = item.customLocation,
+                            teacherName = item.teacherName
                         )
                         is DaySlotItem.WindowSlot -> WindowCard(item.slot)
-                        is DaySlotItem.ConflictSlot -> ConflictCardWithLocation(item.slot, item.lessons, item.locations)
+                        is DaySlotItem.ConflictSlot -> ConflictCardWithLocation(
+                            item.slot,
+                            item.lessons,
+                            item.locations,
+                            item.teachers
+                        )
                         is DaySlotItem.UnplacedLesson -> UnplacedLessonCardWithLocation(
                             item.lesson,
                             item.reason,
-                            customLocation = item.customLocation
+                            customLocation = item.customLocation,
+                            teacherName = item.teacherName
                         )
                     }
                 }
@@ -556,7 +568,7 @@ private fun getPluralForm(count: Int): String {
 }
 
 @Composable
-private fun EventCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null) {
+private fun EventCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null, teacherName: String? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -576,6 +588,15 @@ private fun EventCardWithLocation(event: EventDto, roomName: String? = null, cus
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (teacherName != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "👨‍🏫 $teacherName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             if (roomName != null || customLocation != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -615,7 +636,7 @@ private fun WindowCard(slot: TimeSlot) {
 }
 
 @Composable
-private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, locations: Map<String, String?> = emptyMap()) {
+private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, locations: Map<String, String?> = emptyMap(), teachers: Map<String, String?> = emptyMap()) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -631,8 +652,9 @@ private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, lo
             )
             lessons.forEach { event ->
                 val locationStr = locations[event.id]?.let { " 📍 $it" } ?: ""
+                val teacherStr = teachers[event.id]?.let { " 👨‍🏫 $it" } ?: ""
                 Text(
-                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})$locationStr",
+                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})$teacherStr$locationStr",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -642,7 +664,7 @@ private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, lo
 }
 
 @Composable
-private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null) {
+private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null, teacherName: String? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -657,6 +679,15 @@ private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = 
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             Spacer(modifier = Modifier.height(2.dp))
+            if (teacherName != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "👨‍🏫 $teacherName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             if (roomName != null || customLocation != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(

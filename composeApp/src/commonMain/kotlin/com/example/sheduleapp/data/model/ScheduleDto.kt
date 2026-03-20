@@ -34,7 +34,8 @@ data class EventDto(
     val name: String? = null,
     val start: String? = null,
     val end: String? = null,
-    @SerialName("_links") val links: EventLinks? = null
+    @SerialName("_links") val links: EventLinks? = null,
+    var teacherName: String? = null
 )
 
 @Serializable

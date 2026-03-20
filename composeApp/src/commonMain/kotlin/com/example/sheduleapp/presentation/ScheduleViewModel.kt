@@ -300,12 +300,16 @@ class ScheduleViewModel(
             val eventLocations = response.embedded?.eventLocations ?: emptyList()
             val eventRooms = response.embedded?.eventRooms ?: emptyList()
             val rooms = response.embedded?.rooms ?: emptyList()
+            val eventAttendees = response.embedded?.eventAttendees ?: emptyList()
+            val persons = response.embedded?.persons ?: emptyList()
 
             buildDaySlotsUseCase(
                 dayEvents,
                 eventLocations = eventLocations,
                 eventRooms = eventRooms,
-                rooms = rooms
+                rooms = rooms,
+                eventAttendees = eventAttendees,
+                persons = persons
             )
         }
 
