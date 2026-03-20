@@ -113,16 +113,6 @@ fun SettingsScreen(
 
             item {
                 SettingsSwitchCard(
-                    title = "Показывать окна между парами",
-                    subtitle = "Если выключить, будут видны только пары без пустых промежутков",
-                    isChecked = settings.showWindows,
-                    onCheckedChange = { viewModel.updateShowWindows(it) }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            item {
-                SettingsSwitchCard(
                     title = "Показывать военные пары",
                     subtitle = "Если выключено, военные дисциплины скрываются",
                     isChecked = showMilitaryLessons,

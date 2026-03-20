@@ -92,6 +92,7 @@ class ScheduleViewModel(
     init {
         observeFavorites()
         observeDisplayMode()
+        observeShowMilitaryLessons()
     }
 
     fun fetchSchedule(date: LocalDate? = null) {
@@ -241,6 +242,15 @@ class ScheduleViewModel(
         }
     }
 
+    private fun observeShowMilitaryLessons() {
+        viewModelScope.launch {
+            favoritesRepository.observeShowMilitaryLessons().collect { show ->
+                _showMilitaryLessons.value = show
+                filterEvents()
+            }
+        }
+    }
+
     private fun isLikelyRoomName(name: String?): Boolean {
         if (name.isNullOrBlank()) return false
 
@@ -276,6 +286,9 @@ class ScheduleViewModel(
     fun setShowMilitaryLessons(show: Boolean) {
         _showMilitaryLessons.value = show
         filterEvents()
+        viewModelScope.launch {
+            favoritesRepository.setShowMilitaryLessons(show)
+        }
     }
 
     fun toggleDayExpansion(dayKey: String) {

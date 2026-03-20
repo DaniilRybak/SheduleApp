@@ -8,7 +8,8 @@ interface FavoritesRepository {
 
     fun observeDisplayMode(): Flow<DisplayMode>
     suspend fun setDisplayMode(mode: DisplayMode)
+    fun observeShowMilitaryLessons(): Flow<Boolean>
+    suspend fun setShowMilitaryLessons(show: Boolean)
     suspend fun addFavoriteGroup(groupId: String)
     suspend fun removeFavoriteGroup(groupId: String)
 }
-

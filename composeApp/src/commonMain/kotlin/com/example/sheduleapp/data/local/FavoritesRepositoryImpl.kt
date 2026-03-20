@@ -28,6 +28,15 @@ class FavoritesRepositoryImpl(
         }
     }
 
+    override fun observeShowMilitaryLessons(): Flow<Boolean> =
+        dataStore.data.map { prefs -> prefs[ScheduleKeys.showMilitaryLessons] ?: false }
+
+    override suspend fun setShowMilitaryLessons(show: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[ScheduleKeys.showMilitaryLessons] = show
+        }
+    }
+
     override suspend fun addFavoriteGroup(groupId: String) {
         dataStore.edit { prefs ->
             val updated = (prefs[ScheduleKeys.favoriteGroupIds] ?: emptySet()).toMutableSet()
@@ -44,4 +53,3 @@ class FavoritesRepositoryImpl(
         }
     }
 }
-
