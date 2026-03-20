@@ -7,6 +7,7 @@ import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.domain.model.DaySlotItem
+import com.example.scheduleapp.domain.model.DisplayMode
 import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
@@ -47,6 +48,9 @@ class ScheduleViewModel(
     private val _favoriteGroupIds = MutableStateFlow<Set<String>>(emptySet())
     val favoriteGroupIds = _favoriteGroupIds.asStateFlow()
 
+    private val _displayMode = MutableStateFlow(DisplayMode.NORMAL)
+    val displayMode = _displayMode.asStateFlow()
+
     // Состояние расписания
     private val _scheduleState = MutableStateFlow<ScheduleResponse?>(null)
     val scheduleState = _scheduleState.asStateFlow()
@@ -84,6 +88,7 @@ class ScheduleViewModel(
 
     init {
         observeFavorites()
+        observeDisplayMode()
     }
 
     fun fetchSchedule(date: LocalDate? = null) {
@@ -225,11 +230,22 @@ class ScheduleViewModel(
         }
     }
 
+    private fun observeDisplayMode() {
+        viewModelScope.launch {
+            favoritesRepository.observeDisplayMode().collect { mode ->
+                _displayMode.value = mode
+            }
+        }
+    }
+
     private fun isLikelyRoomName(name: String?): Boolean {
         if (name.isNullOrBlank()) return false
 
         val normalized = name.trim()
-        val roomRegex = Regex("""^(?:[А-ЯA-Z]\s*-\s*\d{2,4}|\d{1,2}\s*-\s*\d{2,4}|ауд\.?\s*\d{2,4})$""", RegexOption.IGNORE_CASE)
+        val roomRegex = Regex(
+            """^(?:[А-ЯA-Z]\s*-\s*\d{2,4}|\d{1,2}\s*-\s*\d{2,4}|ауд\.?\s*\d{2,4})$""",
+            RegexOption.IGNORE_CASE
+        )
         return roomRegex.matches(normalized)
     }
 
@@ -254,7 +270,6 @@ class ScheduleViewModel(
         filterEvents()
     }
 
-    // Переключить раскрытие дня
     fun toggleDayExpansion(dayKey: String) {
         _expandedDays.value = if (dayKey in _expandedDays.value) {
             _expandedDays.value - dayKey
@@ -273,7 +288,6 @@ class ScheduleViewModel(
         val response = _scheduleState.value ?: return
         val events = _filteredEvents.value
 
-        // Группируем по дням и сортируем
         val grouped = events
             .groupBy { event -> formatDayOfWeek(event.start) }
             .toList()
@@ -299,10 +313,10 @@ class ScheduleViewModel(
             val timeZone = TimeZone.currentSystemDefault()
             val today = Clock.System.now().toLocalDateTime(timeZone).date
             val todayKey = formatDayOfWeek(today.toString())
-            if (todayKey in grouped.keys) {
-                _expandedDays.value = setOf(todayKey)
+            _expandedDays.value = if (todayKey in grouped.keys) {
+                setOf(todayKey)
             } else {
-                _expandedDays.value = setOf(grouped.keys.first())
+                setOf(grouped.keys.first())
             }
         }
     }

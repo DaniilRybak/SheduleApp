@@ -14,7 +14,8 @@ data class TimeSlot(
             TimeSlot(id = "4", index = 4, startHm = "13:45", endHm = "15:20"),
             TimeSlot(id = "5", index = 5, startHm = "15:50", endHm = "17:25"),
             TimeSlot(id = "6", index = 6, startHm = "17:35", endHm = "19:10"),
-            TimeSlot(id = "7", index = 7, startHm = "19:15", endHm = "20:50")
+            TimeSlot(id = "7", index = 7, startHm = "19:15", endHm = "20:50"),
+            TimeSlot(id = "8", index = 8, startHm = "20:55", endHm = "21:40")
         )
     }
 }
