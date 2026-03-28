@@ -10,7 +10,9 @@ import com.example.scheduleapp.domain.model.DaySlotItem
 import com.example.scheduleapp.domain.model.TimeSlot
 import com.example.sheduleapp.domain.usecase.EventLocationMapperUseCase
 
-class BuildDaySlotsUseCase {
+class BuildDaySlotsUseCase(
+    private val locationMapper: EventLocationMapperUseCase = EventLocationMapperUseCase()
+) {
 
     operator fun invoke(
         events: List<EventDto>,
@@ -34,7 +36,6 @@ class BuildDaySlotsUseCase {
         val sortedSlots = slots.sortedBy { it.index }
         val bucket = sortedSlots.associate { it.id to mutableListOf<EventDto>() }
         val unplaced = mutableListOf<DaySlotItem.UnplacedLesson>()
-        val locationMapper = EventLocationMapperUseCase()
 
         events.sortedBy { eventStartMinutes(it = it) ?: Int.MAX_VALUE }.forEach { event ->
             val start = eventStartMinutes(event)

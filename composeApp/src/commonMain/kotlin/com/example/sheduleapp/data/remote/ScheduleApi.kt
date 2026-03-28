@@ -63,18 +63,6 @@ class ScheduleApi(private val httpClient: HttpClient) {
         return unwrapPossiblyQuotedJson(response.bodyAsText())
     }
 
-    suspend fun getGroupSchedule(request: ScheduleRequest): ScheduleResponse {
-        val rawJson = fetchScheduleJson(GROUP_SCHEDULE_PATH, request)
-        logProcessedJson(rawJson)
-        return json.decodeFromString(rawJson)
-    }
-
-    suspend fun getRoomSchedule(request: ScheduleRequest): ScheduleResponse {
-        val rawJson = fetchScheduleJson(ROOM_SCHEDULE_PATH, request)
-        logProcessedJson(rawJson)
-        return json.decodeFromString(rawJson)
-    }
-
     suspend fun getScheduleAsJsonString(request: ScheduleRequest): String {
         val url = if (!request.roomId.isNullOrEmpty()) {
             ROOM_SCHEDULE_PATH

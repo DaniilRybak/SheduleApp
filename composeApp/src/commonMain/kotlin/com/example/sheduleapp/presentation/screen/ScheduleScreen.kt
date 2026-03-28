@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,12 +31,13 @@ import com.example.scheduleapp.domain.model.DaySlotItem
 import com.example.scheduleapp.domain.model.DisplayMode
 import com.example.scheduleapp.domain.model.TimeSlot
 import com.example.scheduleapp.presentation.ScheduleViewModel
+import com.example.sheduleapp.presentation.strings.ScheduleStrings
 import com.example.sheduleapp.data.model.GroupDto
-import com.example.sheduleapp.domain.all
 import com.example.sheduleapp.ui.theme.ScheduleAppTheme
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 
+/** Основной экран расписания с фильтрацией по дням и режимами отображения. */
 @Composable
 fun ScheduleScreen(
     viewModel: ScheduleViewModel = koinInject(),
@@ -54,12 +56,16 @@ fun ScheduleScreen(
     val disciplineByEventId by viewModel.disciplineByEventId.collectAsState()
     val disciplineShortByEventId by viewModel.disciplineShortByEventId.collectAsState()
 
-    val favoriteGroups = groups
-        .filter { it.personId in favoriteGroupIds }
-        .sortedBy { it.name }
+    val favoriteGroups = remember(groups, favoriteGroupIds) {
+        groups
+            .filter { it.personId in favoriteGroupIds }
+            .sortedBy { it.name }
+    }
 
-    val compactDayItems = dayItemsByDay.mapValues { (_, items) ->
-        items.filterNot { it is DaySlotItem.WindowSlot }
+    val compactDayItems = remember(dayItemsByDay) {
+        dayItemsByDay.mapValues { (_, items) ->
+            items.filterNot { it is DaySlotItem.WindowSlot }
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -83,39 +89,72 @@ fun ScheduleScreen(
             onFavoriteClick = { group ->
                 viewModel.selectGroup(group.personId, group.name)
             },
-            onOpenSettings = onOpenSettings
+            _onOpenSettings = onOpenSettings
         )
 
-        when {
-            isLoading -> LoadingContent()
-            errorMessage != null -> ErrorContent(errorMessage!!) { viewModel.fetchSchedule() }
-            dayItemsByDay.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
-            dayItemsByDay.isEmpty() -> EmptyContent()
-            else -> when (displayMode) {
-                DisplayMode.NORMAL -> EventsByDayList(
-                    dayItemsByDay = dayItemsByDay,
-                    expandedDays = expandedDays,
-                    disciplineByEventId = disciplineByEventId,
-                    disciplineShortByEventId = disciplineShortByEventId,
-                    onToggleDay = { viewModel.toggleDayExpansion(it) }
-                )
-                DisplayMode.COMPACT -> EventsByDayList(
-                    dayItemsByDay = compactDayItems,
-                    expandedDays = expandedDays,
-                    disciplineByEventId = disciplineByEventId,
-                    disciplineShortByEventId = disciplineShortByEventId,
-                    onToggleDay = { viewModel.toggleDayExpansion(it) }
-                )
-                DisplayMode.GRID -> ScheduleGrid(
-                    dayItemsByDay = compactDayItems,
-                    disciplineByEventId = disciplineByEventId,
-                    disciplineShortByEventId = disciplineShortByEventId
-                )
-            }
+        ScheduleContent(
+            isLoading = isLoading,
+            errorMessage = errorMessage,
+            dayItemsByDay = dayItemsByDay,
+            compactDayItems = compactDayItems,
+            searchQuery = searchQuery,
+            displayMode = displayMode,
+            expandedDays = expandedDays,
+            disciplineByEventId = disciplineByEventId,
+            disciplineShortByEventId = disciplineShortByEventId,
+            onRetry = { viewModel.fetchSchedule() },
+            onToggleDay = { viewModel.toggleDayExpansion(it) }
+        )
+    }
+}
+
+@Composable
+private fun ScheduleContent(
+    isLoading: Boolean,
+    errorMessage: String?,
+    dayItemsByDay: Map<String, List<DaySlotItem>>,
+    compactDayItems: Map<String, List<DaySlotItem>>,
+    searchQuery: String,
+    displayMode: DisplayMode,
+    expandedDays: Set<String>,
+    disciplineByEventId: Map<String, String>,
+    disciplineShortByEventId: Map<String, String>,
+    onRetry: () -> Unit,
+    onToggleDay: (String) -> Unit
+) {
+    when {
+        isLoading -> LoadingContent()
+        errorMessage != null -> ErrorContent(errorMessage, onRetry)
+        dayItemsByDay.isEmpty() && searchQuery.isNotEmpty() -> NoResultsContent(searchQuery)
+        dayItemsByDay.isEmpty() -> EmptyContent()
+        else -> when (displayMode) {
+            DisplayMode.NORMAL -> EventsByDayList(
+                dayItemsByDay = dayItemsByDay,
+                expandedDays = expandedDays,
+                disciplineByEventId = disciplineByEventId,
+                disciplineShortByEventId = disciplineShortByEventId,
+                onToggleDay = onToggleDay
+            )
+
+            DisplayMode.COMPACT -> EventsByDayList(
+                dayItemsByDay = compactDayItems,
+                expandedDays = expandedDays,
+                disciplineByEventId = disciplineByEventId,
+                disciplineShortByEventId = disciplineShortByEventId,
+                onToggleDay = onToggleDay
+            )
+
+            DisplayMode.GRID -> ScheduleGrid(
+                dayItemsByDay = compactDayItems,
+                disciplineByEventId = disciplineByEventId,
+                disciplineShortByEventId = disciplineShortByEventId
+            )
         }
     }
 }
 
+/** Панель навигации по неделям с кнопками переключения и избранными группами. */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun WeekNavigationBar(
     weekRangeText: String,
@@ -125,7 +164,7 @@ private fun WeekNavigationBar(
     onOpenGroupSearch: () -> Unit = {},
     favoriteGroups: List<GroupDto>,
     onFavoriteClick: (GroupDto) -> Unit = {},
-    onOpenSettings: () -> Unit = {}
+    _onOpenSettings: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -160,7 +199,7 @@ private fun WeekNavigationBar(
                             onClick = onOpenGroupSearch,
                             label = {
                                 Text(
-                                    text = "+ Добавить",
+                                    text = "+ ${ScheduleStrings.addFavorite}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Normal
                                 )
@@ -184,7 +223,6 @@ private fun WeekNavigationBar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Кнопка "Предыдущая неделя"
                 Button(
                     onClick = onPreviousWeek,
                     modifier = Modifier.size(40.dp),
@@ -192,11 +230,11 @@ private fun WeekNavigationBar(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text("◀", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
+                    Text(ScheduleStrings.previousWeek, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
                 }
 
                 Text(
-                    text = weekRangeText.ifEmpty { "Загрузка..." },
+                    text = weekRangeText.ifEmpty { ScheduleStrings.loadingPlaceholder },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -204,7 +242,6 @@ private fun WeekNavigationBar(
                     modifier = Modifier.weight(1f).clickable { onCurrentWeek() }.padding(horizontal = 8.dp)
                 )
 
-                // Кнопка "Следующая неделя"
                 Button(
                     onClick = onNextWeek,
                     modifier = Modifier.size(40.dp),
@@ -212,13 +249,14 @@ private fun WeekNavigationBar(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text("▶", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
+                    Text(ScheduleStrings.nextWeek, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
     }
 }
 
+/** Список событий, сгруппированных по дням недели в развернутом или компактном виде. */
 @Composable
 private fun EventsByDayList(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
@@ -247,14 +285,15 @@ private fun EventsByDayList(
     }
 }
 
+/** Сетка расписания (таблица «время × дни» с событиями в ячейках). */
 @Composable
 private fun ScheduleGrid(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
     disciplineByEventId: Map<String, String>,
     disciplineShortByEventId: Map<String, String>
 ) {
-    val dayKeys = dayItemsByDay.keys.toList()
-    val slots = TimeSlot.defaultSlots()
+    val dayKeys = remember(dayItemsByDay) { dayItemsByDay.keys.toList() }
+    val slots = remember { TimeSlot.defaultSlots() }
     val horizontalScroll = rememberScrollState()
     val verticalScroll = rememberScrollState()
 
@@ -267,7 +306,7 @@ private fun ScheduleGrid(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Время",
+                text = ScheduleStrings.gridTime,
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.width(92.dp)
             )
@@ -291,7 +330,7 @@ private fun ScheduleGrid(
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    text = "${slot.id} Пара\n${slot.startHm}\n${slot.endHm}",
+                    text = ScheduleStrings.slotLabel(slot.index, slot.startHm, slot.endHm),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.width(92.dp).padding(top = 10.dp)
@@ -320,14 +359,16 @@ private fun ScheduleGrid(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        val unplacedByDay = dayItemsByDay.mapValues { (_, items) ->
-            items.filterIsInstance<DaySlotItem.UnplacedLesson>()
-        }.filterValues { it.isNotEmpty() }
+        val unplacedByDay = remember(dayItemsByDay) {
+            dayItemsByDay.mapValues { (_, items) ->
+                items.filterIsInstance<DaySlotItem.UnplacedLesson>()
+            }.filterValues { it.isNotEmpty() }
+        }
 
         if (unplacedByDay.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Вне сетки",
+                text = ScheduleStrings.outOfGrid,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -343,7 +384,6 @@ private fun ScheduleGrid(
                 items.forEach { item ->
                     UnplacedLessonCardWithLocation(
                         event = item.lesson,
-                        roomName = item.roomName,
                         customLocation = item.customLocation,
                         teacherName = item.teacherName,
                         disciplineName = disciplineByEventId[item.lesson.id],
@@ -356,6 +396,7 @@ private fun ScheduleGrid(
     }
 }
 
+/** Ячейка сетки расписания, содержащая события за определенный день и временной слот. */
 @Composable
 private fun GridCell(
     items: List<DaySlotItem>,
@@ -378,7 +419,7 @@ private fun GridCell(
         ) {
             if (items.isEmpty()) {
                 Text(
-                    text = "—",
+                    text = ScheduleStrings.emptyCell,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -392,9 +433,8 @@ private fun GridCell(
                     is DaySlotItem.LessonSlot -> {
                         val disciplineName = disciplineByEventId[item.lesson.id]
                         val disciplineShortName = disciplineShortByEventId[item.lesson.id]
-                        val titleColor = lessonTypeTitleColor(item.lesson, disciplineName, disciplineShortName)
-                        val containerColor = lessonTypeContainerColor(item.lesson, disciplineName, disciplineShortName)
-                        val hasLocation = item.roomName != null || item.customLocation != null
+                        val containerColor = lessonTypeContainerColor(disciplineShortName)
+                        val location = item.roomName ?: item.customLocation
 
                         Column(
                             modifier = Modifier
@@ -411,37 +451,17 @@ private fun GridCell(
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = titleColor
                             )
 
                             Spacer(modifier = Modifier.weight(1f))
 
-                            Column(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
-                            ) {
-                                if (item.teacherName != null) {
-                                    Text(
-                                        text = item.teacherName,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-
-                                if (item.teacherName != null && hasLocation) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                }
-
-                                if (hasLocation) {
-                                    Text(
-                                        text = "${item.roomName ?: item.customLocation}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.tertiary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                            }
+                            TeacherAndLocationBlock(
+                                teacherName = item.teacherName,
+                                location = location,
+                                topPadding = 16.dp,
+                                teacherStyle = MaterialTheme.typography.labelSmall,
+                                locationStyle = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
 
@@ -461,6 +481,7 @@ private fun GridCell(
     }
 }
 
+/** Секция дня с заголовком, счетчиком событий и развертываемым списком занятий. */
 @Composable
 private fun DaySection(
     day: String,
@@ -532,7 +553,7 @@ private fun countLessons(items: List<DaySlotItem>): Int {
     }
 }
 
-// Заголовок дня
+/** Заголовок дня с названием, количеством пар и иконкой разворота. */
 @Composable
 private fun DayHeader(
     day: String,
@@ -566,7 +587,7 @@ private fun DayHeader(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "$eventCount ${getPluralForm(eventCount)}",
+                    text = ScheduleStrings.lessonsCountLabel(eventCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
@@ -581,14 +602,7 @@ private fun DayHeader(
     }
 }
 
-private fun getPluralForm(count: Int): String {
-    return when {
-        count % 10 == 1 && count % 100 != 11 -> "пара"
-        count % 10 in 2..4 && count % 100 !in 12..14 -> "пары"
-        else -> "пар"
-    }
-}
-
+/** Карточка события с временем, преподавателем и локацией. */
 @Composable
 private fun EventCardWithLocation(
     event: EventDto,
@@ -598,7 +612,7 @@ private fun EventCardWithLocation(
     disciplineName: String? = null,
     disciplineShortName: String? = null
 ) {
-    val containerColor = lessonTypeContainerColor(event, disciplineName, disciplineShortName)
+    val containerColor = lessonTypeContainerColor(disciplineShortName)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -607,12 +621,10 @@ private fun EventCardWithLocation(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            val titleColor = lessonTypeTitleColor(event, disciplineName, disciplineShortName)
             Text(
                 text = buildLessonTitle(event, disciplineName),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = titleColor
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -620,28 +632,19 @@ private fun EventCardWithLocation(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            if (teacherName != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "👨‍🏫 $teacherName",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            if (roomName != null || customLocation != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${roomName ?: customLocation}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+
+            TeacherAndLocationBlock(
+                teacherName = teacherName,
+                location = roomName ?: customLocation,
+                topPadding = 8.dp,
+                teacherStyle = MaterialTheme.typography.bodySmall,
+                locationStyle = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
 
+/** Карточка для отображения окна (свободного времени) между занятиями. */
 @Composable
 private fun WindowCard(slot: TimeSlot) {
     Card(
@@ -652,7 +655,7 @@ private fun WindowCard(slot: TimeSlot) {
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
-                text = "Окно",
+                text = ScheduleStrings.window,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -667,6 +670,8 @@ private fun WindowCard(slot: TimeSlot) {
     }
 }
 
+/** Карточка конфликта расписания с перечислением всех пересекающихся занятий. */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun ConflictCardWithLocation(
     slot: TimeSlot,
@@ -674,7 +679,7 @@ private fun ConflictCardWithLocation(
     locations: Map<String, String?> = emptyMap(),
     teachers: Map<String, String?> = emptyMap(),
     disciplineByEventId: Map<String, String> = emptyMap(),
-    disciplineShortByEventId: Map<String, String> = emptyMap()
+    _disciplineShortByEventId: Map<String, String> = emptyMap()
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -684,7 +689,7 @@ private fun ConflictCardWithLocation(
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "Конфликт пар (${slot.startHm} - ${slot.endHm})",
+                text = ScheduleStrings.conflictTitle(slot.startHm, slot.endHm),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onErrorContainer
@@ -692,31 +697,27 @@ private fun ConflictCardWithLocation(
             lessons.forEach { event ->
                 val locationStr = locations[event.id]?.let { " 📍 $it" } ?: ""
                 val teacherStr = teachers[event.id]?.let { " 👨‍🏫 $it" } ?: ""
-                val titleColor = lessonTypeTitleColor(
-                    event,
-                    disciplineByEventId[event.id],
-                    disciplineShortByEventId[event.id]
-                )
                 Text(
                     text = "• ${buildLessonTitle(event, disciplineByEventId[event.id])} (${formatEventTime(event.start, event.end)})$teacherStr$locationStr",
                     style = MaterialTheme.typography.bodySmall,
-                    color = titleColor
                 )
             }
         }
     }
 }
 
+/** Карточка занятия вне основной сетки расписания. */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun UnplacedLessonCardWithLocation(
     event: EventDto,
-    roomName: String? = null,
+    _roomName: String? = null,
     customLocation: String? = null,
     teacherName: String? = null,
     disciplineName: String? = null,
     disciplineShortName: String? = null
 ) {
-    val containerColor = lessonTypeContainerColor(event, disciplineName, disciplineShortName)
+    val containerColor = lessonTypeContainerColor(disciplineShortName)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -725,27 +726,25 @@ private fun UnplacedLessonCardWithLocation(
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
-            val titleColor = lessonTypeTitleColor(event, disciplineName, disciplineShortName)
             Text(
-                text = "Вне сетки: ${buildLessonTitle(event, disciplineName)}",
+                text = ScheduleStrings.outOfGridTitle(buildLessonTitle(event, disciplineName)),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = titleColor
             )
             Spacer(modifier = Modifier.height(2.dp))
             if (teacherName != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "👨‍🏫 $teacherName",
+                    text = ScheduleStrings.teacher(teacherName),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            if (roomName != null || customLocation != null) {
+            if (customLocation != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "📍 ${roomName ?: customLocation}",
+                    text = ScheduleStrings.location(customLocation),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -754,18 +753,47 @@ private fun UnplacedLessonCardWithLocation(
     }
 }
 
-private enum class LessonType {
-    PRACTICE,
-    LECTURE,
-    LAB,
-    OTHER
+@Composable
+private fun TeacherAndLocationBlock(
+    teacherName: String?,
+    location: String?,
+    topPadding: androidx.compose.ui.unit.Dp,
+    teacherStyle: androidx.compose.ui.text.TextStyle,
+    locationStyle: androidx.compose.ui.text.TextStyle
+) {
+    if (teacherName == null && location == null) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = topPadding)
+    ) {
+        if (teacherName != null) {
+            Text(
+                text = teacherName,
+                style = teacherStyle,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        if (teacherName != null && location != null) {
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
+        if (location != null) {
+            Text(
+                text = location,
+                style = locationStyle,
+                color = MaterialTheme.colorScheme.tertiary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
 }
 
-private fun resolveLessonType(
-    event: EventDto,
-    disciplineName: String?,
-    disciplineShortName: String?
-): LessonType {
+/** Определяет тип занятия (лекция, практика, лаба или другое) по short-названию из JSON. */
+private fun resolveLessonType(disciplineShortName: String?): LessonType {
     val short = disciplineShortName.orEmpty().lowercase()
 
     return when {
@@ -776,27 +804,10 @@ private fun resolveLessonType(
     }
 }
 
+/** Возвращает цвет фона ячейки в зависимости от типа занятия. */
 @Composable
-private fun lessonTypeTitleColor(
-    event: EventDto,
-    disciplineName: String?,
-    disciplineShortName: String?
-): Color {
-    return when (resolveLessonType(event, disciplineName, disciplineShortName)) {
-        LessonType.PRACTICE -> Color(0xFF1E88E5)
-        LessonType.LECTURE -> Color(0xFF43A047)
-        LessonType.LAB -> Color(0xFFFB8C00)
-        LessonType.OTHER -> MaterialTheme.colorScheme.onSurface
-    }
-}
-
-@Composable
-private fun lessonTypeContainerColor(
-    event: EventDto,
-    disciplineName: String?,
-    disciplineShortName: String?
-): Color {
-    return when (resolveLessonType(event, disciplineName, disciplineShortName)) {
+private fun lessonTypeContainerColor(disciplineShortName: String?): Color {
+    return when (resolveLessonType(disciplineShortName)) {
         LessonType.PRACTICE -> Color(0xFFE3F2FD)
         LessonType.LECTURE -> Color(0xFFE8F5E9)
         LessonType.LAB -> Color(0xFFFFF3E0)
@@ -804,6 +815,7 @@ private fun lessonTypeContainerColor(
     }
 }
 
+/** Формирует заголовок занятия из названия дисциплины и темы. */
 private fun buildLessonTitle(
     lesson: EventDto,
     disciplineName: String?
@@ -812,7 +824,7 @@ private fun buildLessonTitle(
     val topic = lesson.name?.trim().orEmpty()
 
     return when {
-        discipline.isBlank() && topic.isBlank() -> "Без названия"
+        discipline.isBlank() && topic.isBlank() -> ScheduleStrings.unknownTitle
         discipline.isBlank() -> topic
         topic.isBlank() -> discipline
         discipline.equals(topic, ignoreCase = true) -> discipline
@@ -820,68 +832,82 @@ private fun buildLessonTitle(
     }
 }
 
+/** Форматирует время события в удобный для отображения вид. */
 private fun formatEventTime(start: String?, end: String?): String {
     val startTime = extractTime(start)
     val endTime = extractTime(end)
 
     return when {
-        startTime == null -> "Время не указано"
+        startTime == null -> ScheduleStrings.unknownTime
         endTime == null -> startTime
         else -> "$startTime - $endTime"
     }
 }
 
+/** Извлекает время (HH:mm) из строки формата ISO 8601. */
 private fun extractTime(dateTime: String?): String? {
     if (dateTime == null || dateTime.length < 16) return null
     return dateTime.substring(11, 16)
 }
 
+private enum class LessonType {
+    PRACTICE,
+    LECTURE,
+    LAB,
+    OTHER
+}
+
+/** Экран загрузки расписания со спиннером и текстом. */
 @Composable
 private fun LoadingContent() {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Загрузка расписания...", style = MaterialTheme.typography.bodyLarge)
+            Text(ScheduleStrings.loadingSchedule, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
+/** Экран ошибки с сообщением и кнопкой повтора. */
 @Composable
 private fun ErrorContent(errorMessage: String, onRetry: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-            Text("Ошибка", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+            Text(ScheduleStrings.error, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             Text(errorMessage, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRetry) { Text("Повторить") }
+            Button(onClick = onRetry) { Text(ScheduleStrings.retry) }
         }
     }
 }
 
+/** Экран отсутствия результатов поиска. */
 @Composable
 private fun NoResultsContent(query: String) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🔍 Ничего не найдено", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text("🔍 ${ScheduleStrings.noResultsTitle}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("По запросу \"$query\" ничего не найдено", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            Text(ScheduleStrings.noResultsMessage(query), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
         }
     }
 }
 
+/** Экран пустого расписания (нет событий на выбранную неделю). */
 @Composable
 private fun EmptyContent() {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Нет событий", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(ScheduleStrings.emptyEventsTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("На этой неделе расписание отсутствует", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            Text(ScheduleStrings.emptyWeekMessage, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
         }
     }
 }
 
+/** Preview экрана расписания с KoinApplication для DI. */
 @Preview
 @Composable
 private fun ScheduleScreenPreview() {

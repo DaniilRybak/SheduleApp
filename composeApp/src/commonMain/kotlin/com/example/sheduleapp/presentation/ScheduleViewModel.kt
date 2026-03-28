@@ -53,7 +53,6 @@ class ScheduleViewModel(
 
     // Состояние расписания
     private val _scheduleState = MutableStateFlow<ScheduleResponse?>(null)
-    val scheduleState = _scheduleState.asStateFlow()
 
     // Состояние загрузки
     private val _isLoading = MutableStateFlow(false)
@@ -65,20 +64,17 @@ class ScheduleViewModel(
 
     // Отфильтрованные события
     private val _filteredEvents = MutableStateFlow<List<EventDto>>(emptyList())
-    val filteredEvents = _filteredEvents.asStateFlow()
 
     // Поисковый запрос
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
     private val _selectedDate = MutableStateFlow<LocalDate?>(null)
-    val selectedDate = _selectedDate.asStateFlow()
 
     private val _weekRangeText = MutableStateFlow("")
     val weekRangeText = _weekRangeText.asStateFlow()
 
     private val _eventsByDay = MutableStateFlow<Map<String, List<EventDto>>>(emptyMap())
-    val eventsByDay = _eventsByDay.asStateFlow()
 
     private val _dayItemsByDay = MutableStateFlow<Map<String, List<DaySlotItem>>>(emptyMap())
     val dayItemsByDay = _dayItemsByDay.asStateFlow()
@@ -241,13 +237,6 @@ class ScheduleViewModel(
         fetchSchedule()
     }
 
-    fun selectRoom(roomId: String) {
-        _selectedPersonId.value = roomId
-        _selectedTargetType.value = ScheduleTargetType.ROOM
-        _groupQuery.value = ""
-        fetchSchedule()
-    }
-
     fun toggleFavoriteGroup(group: GroupDto) {
         viewModelScope.launch {
             if (group.personId in _favoriteGroupIds.value) {
@@ -308,11 +297,6 @@ class ScheduleViewModel(
         } else {
             "${weekStart.day} $startMonth - ${weekEnd.day} $endMonth ${weekStart.year}"
         }
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-        filterEvents()
     }
 
     fun setShowMilitaryLessons(show: Boolean) {
@@ -418,17 +402,12 @@ class ScheduleViewModel(
     }
 
     private fun formatDayOfWeek(dateTime: String?): String {
-        if (dateTime == null) return "Неизвестная дата"
+        if (dateTime.isNullOrBlank()) return "Неизвестная дата"
 
-        val date = dateTime.substring(0, 10)
-        val parts = date.split("-")
-        if (parts.size != 3) return date
+        val datePart = dateTime.take(10)
+        if (datePart.length != 10) return dateTime
 
-        val year = parts[0].toIntOrNull() ?: return date
-        val month = parts[1].toIntOrNull() ?: return date
-        val day = parts[2].toIntOrNull() ?: return date
-
-        val localDate = LocalDate(year, month, day)
+        val localDate = runCatching { LocalDate.parse(datePart) }.getOrNull() ?: return datePart
 
         val daysShort = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
         val months = listOf("янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек")
@@ -437,7 +416,7 @@ class ScheduleViewModel(
         val dayShort = daysShort[dayOfWeek]
         val monthName = months[localDate.month.number - 1]
 
-        return "$dayShort, $day $monthName"
+        return "$dayShort, ${localDate.day} $monthName"
     }
 
     private fun getDayOrder(dayStr: String): Int {
@@ -446,5 +425,3 @@ class ScheduleViewModel(
         return daysShort.indexOf(dayPrefix).takeIf { it >= 0 } ?: 7
     }
 }
-
-

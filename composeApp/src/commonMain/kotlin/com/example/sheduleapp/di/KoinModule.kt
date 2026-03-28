@@ -5,9 +5,9 @@ import com.example.scheduleapp.data.local.PrefsRepository
 import com.example.scheduleapp.data.local.PrefsRepositoryImpl
 import com.example.scheduleapp.data.local.SettingsRepositoryImpl
 import com.example.scheduleapp.data.remote.ScheduleApi
+import com.example.scheduleapp.data.repository.ScheduleEntryRepositoryImpl
 import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.data.repository.ScheduleRepositoryImpl
-import com.example.scheduleapp.data.repository.ScheduleEntryRepositoryImpl
 import com.example.scheduleapp.data.repository.WeekScheduleRepositoryImpl
 import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.scheduleapp.domain.repository.ScheduleEntryRepository
@@ -23,10 +23,11 @@ import com.example.scheduleapp.presentation.ScheduleViewModel
 import com.example.sheduleapp.data.ScheduleLocalDataSource
 import com.example.sheduleapp.data.datasource.DataStoreScheduleSource
 import com.example.sheduleapp.data.repository.RemoteConfigRepository
+import com.example.sheduleapp.domain.usecase.EventLocationMapperUseCase
 import com.example.sheduleapp.presentation.SettingsViewModel
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -65,7 +66,8 @@ val useCaseModule = module {
     single { GetScheduleEntryUseCase(get()) }
     single { GetWeekScheduleUseCase(get()) }
     single { SearchScheduleEntriesUseCase() }
-    single { BuildDaySlotsUseCase() }
+    single { EventLocationMapperUseCase() }
+    single { BuildDaySlotsUseCase(get()) }
 }
 
 val viewModelModule = module {

@@ -24,7 +24,6 @@ import org.koin.compose.koinInject
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = koinInject(),
-    onBack: () -> Unit = {}
 ) {
     val settings by viewModel.settings.collectAsState()
     val scheduleViewModel: ScheduleViewModel = koinInject()

@@ -49,14 +49,6 @@ class SettingsViewModel(
         }
     }
 
-    fun updateShowWindows(showWindows: Boolean) {
-        viewModelScope.launch {
-            val updated = _settings.value.copy(showWindows = showWindows)
-            _settings.value = updated
-            updateSettingsUseCase(updated)
-        }
-    }
-
     fun updateDisplayMode(displayMode: DisplayMode) {
         viewModelScope.launch {
 
@@ -65,14 +57,6 @@ class SettingsViewModel(
             favoritesRepository.setDisplayMode(displayMode)
 
             updateSettingsUseCase(_settings.value)
-        }
-    }
-
-    fun updateWeeklyMode(isWeeklyMode: Boolean) {
-        viewModelScope.launch {
-            val updated = _settings.value.copy(isWeeklyMode = isWeeklyMode)
-            _settings.value = updated
-            updateSettingsUseCase(updated)
         }
     }
 }

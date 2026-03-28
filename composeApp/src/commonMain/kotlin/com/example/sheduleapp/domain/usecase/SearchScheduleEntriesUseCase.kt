@@ -3,12 +3,6 @@ package com.example.scheduleapp.domain.usecase
 import com.example.scheduleapp.data.model.EventDto
 
 class SearchScheduleEntriesUseCase {
-    /**
-     * Выполнить поиск
-     * @param query строка для поиска (игнорирует регистр)
-     * @param events список всех событий
-     * @return отфильтрованный список событий
-     */
     operator fun invoke(query: String, events: List<EventDto>): List<EventDto> {
 
         if (query.isBlank()) return events
