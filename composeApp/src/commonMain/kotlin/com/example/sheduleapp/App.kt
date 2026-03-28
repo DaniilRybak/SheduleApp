@@ -184,6 +184,7 @@ private fun FloatingBottomBar(
                         maxLines = 1,
                     )
                 }
+
             }
         }
     }
