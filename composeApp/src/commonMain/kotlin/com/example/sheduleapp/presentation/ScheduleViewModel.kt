@@ -89,6 +89,9 @@ class ScheduleViewModel(
     private val _showMilitaryLessons = MutableStateFlow(false)
     val showMilitaryLessons = _showMilitaryLessons.asStateFlow()
 
+    private val _disciplineByEventId = MutableStateFlow<Map<String, String>>(emptyMap())
+    val disciplineByEventId = _disciplineByEventId.asStateFlow()
+
     init {
         observeFavorites()
         observeDisplayMode()
@@ -135,6 +138,7 @@ class ScheduleViewModel(
 
                 val scheduleResponse = scheduleRepository.getSchedule(request)
                 _scheduleState.value = scheduleResponse
+                _disciplineByEventId.value = buildDisciplineByEventId(scheduleResponse)
                 filterEvents()
 
                 println(
@@ -151,11 +155,26 @@ class ScheduleViewModel(
                 }
                 _errorMessage.value = errorMsg
                 _scheduleState.value = null
+                _disciplineByEventId.value = emptyMap()
                 println("Error fetching schedule: ${e.message}")
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun buildDisciplineByEventId(schedule: ScheduleResponse): Map<String, String> {
+        val embedded = schedule.embedded ?: return emptyMap()
+        val courseById = embedded.courseUnitRealizations.associateBy { it.id }
+
+        return embedded.events.associate { event ->
+            val courseId = event.links?.courseUnitRealization?.href?.substringAfterLast("/")
+            val course = courseId?.let { courseById[it] }
+            val discipline = course?.name?.takeIf { it.isNotBlank() }
+                ?: course?.nameShort?.takeIf { it.isNotBlank() }
+                ?: ""
+            event.id to discipline
         }
     }
 

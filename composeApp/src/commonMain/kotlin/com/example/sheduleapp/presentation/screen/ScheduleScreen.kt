@@ -49,6 +49,7 @@ fun ScheduleScreen(
     val groups by viewModel.groups.collectAsState()
     val favoriteGroupIds by viewModel.favoriteGroupIds.collectAsState()
     val displayMode by viewModel.displayMode.collectAsState()
+    val disciplineByEventId by viewModel.disciplineByEventId.collectAsState()
 
     val favoriteGroups = groups
         .filter { it.personId in favoriteGroupIds }
@@ -82,11 +83,6 @@ fun ScheduleScreen(
             onOpenSettings = onOpenSettings
         )
 
-//        SearchBar(
-//            query = searchQuery,
-//            onQueryChange = { viewModel.updateSearchQuery(it) }
-//        )
-
         when {
             isLoading -> LoadingContent()
             errorMessage != null -> ErrorContent(errorMessage!!) { viewModel.fetchSchedule() }
@@ -96,15 +92,18 @@ fun ScheduleScreen(
                 DisplayMode.NORMAL -> EventsByDayList(
                     dayItemsByDay = dayItemsByDay,
                     expandedDays = expandedDays,
+                    disciplineByEventId = disciplineByEventId,
                     onToggleDay = { viewModel.toggleDayExpansion(it) }
                 )
                 DisplayMode.COMPACT -> EventsByDayList(
                     dayItemsByDay = compactDayItems,
                     expandedDays = expandedDays,
+                    disciplineByEventId = disciplineByEventId,
                     onToggleDay = { viewModel.toggleDayExpansion(it) }
                 )
                 DisplayMode.GRID -> ScheduleGrid(
-                    dayItemsByDay = compactDayItems
+                    dayItemsByDay = compactDayItems,
+                    disciplineByEventId = disciplineByEventId
                 )
             }
         }
@@ -218,6 +217,7 @@ private fun WeekNavigationBar(
 private fun EventsByDayList(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
     expandedDays: Set<String>,
+    disciplineByEventId: Map<String, String>,
     onToggleDay: (String) -> Unit
 ) {
     LazyColumn(
@@ -231,6 +231,7 @@ private fun EventsByDayList(
                     day = day,
                     dayItems = items,
                     isExpanded = day in expandedDays,
+                    disciplineByEventId = disciplineByEventId,
                     onToggle = { onToggleDay(day) }
                 )
             }
@@ -239,7 +240,10 @@ private fun EventsByDayList(
 }
 
 @Composable
-private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
+private fun ScheduleGrid(
+    dayItemsByDay: Map<String, List<DaySlotItem>>,
+    disciplineByEventId: Map<String, String>
+) {
     val dayKeys = dayItemsByDay.keys.toList()
     val slots = TimeSlot.defaultSlots()
     val horizontalScroll = rememberScrollState()
@@ -295,6 +299,7 @@ private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
 
                     GridCell(
                         items = cellItems,
+                        disciplineByEventId = disciplineByEventId,
                         modifier = Modifier
                             .width(180.dp)
                             .fillMaxHeight()
@@ -330,7 +335,8 @@ private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
                         event = item.lesson,
                         roomName = item.roomName,
                         customLocation = item.customLocation,
-                        teacherName = item.teacherName
+                        teacherName = item.teacherName,
+                        disciplineName = disciplineByEventId[item.lesson.id]
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                 }
@@ -342,6 +348,7 @@ private fun ScheduleGrid(dayItemsByDay: Map<String, List<DaySlotItem>>) {
 @Composable
 private fun GridCell(
     items: List<DaySlotItem>,
+    disciplineByEventId: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -355,7 +362,7 @@ private fun GridCell(
                 .fillMaxWidth()
                 .heightIn(min = 88.dp)
                 .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (items.isEmpty()) {
                 Text(
@@ -371,31 +378,54 @@ private fun GridCell(
             items.forEach { item ->
                 when (item) {
                     is DaySlotItem.LessonSlot -> {
-                        Text(
-                            text = item.lesson.name ?: "Без названия",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        if (item.teacherName != null) {
-                            Spacer(modifier = Modifier.height(4.dp))
+                        val hasLocation = item.roomName != null || item.customLocation != null
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 86.dp)
+                        ) {
                             Text(
-                                text = item.teacherName,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                        if (item.roomName != null || item.customLocation != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "${item.roomName ?: item.customLocation}",
+                                text = buildLessonTitle(
+                                    lesson = item.lesson,
+                                    disciplineName = disciplineByEventId[item.lesson.id]
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.tertiary,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Column(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                            ) {
+                                if (item.teacherName != null) {
+                                    Text(
+                                        text = item.teacherName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+
+                                if (item.teacherName != null && hasLocation) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+
+                                if (hasLocation) {
+                                    Text(
+                                        text = "${item.roomName ?: item.customLocation}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
                         }
                     }
+
                     is DaySlotItem.ConflictSlot -> {
                         Text(
                             text = "Конфликт: ${item.lessons.size}",
@@ -404,6 +434,7 @@ private fun GridCell(
                             color = MaterialTheme.colorScheme.error
                         )
                     }
+
                     else -> Unit
                 }
             }
@@ -411,12 +442,12 @@ private fun GridCell(
     }
 }
 
-// Секция для одного дня
 @Composable
 private fun DaySection(
     day: String,
     dayItems: List<DaySlotItem>,
     isExpanded: Boolean,
+    disciplineByEventId: Map<String, String>,
     onToggle: () -> Unit
 ) {
     Column(
@@ -443,20 +474,23 @@ private fun DaySection(
                             item.lesson,
                             roomName = item.roomName,
                             customLocation = item.customLocation,
-                            teacherName = item.teacherName
+                            teacherName = item.teacherName,
+                            disciplineName = disciplineByEventId[item.lesson.id]
                         )
                         is DaySlotItem.WindowSlot -> WindowCard(item.slot)
                         is DaySlotItem.ConflictSlot -> ConflictCardWithLocation(
                             item.slot,
                             item.lessons,
                             item.locations,
-                            item.teachers
+                            item.teachers,
+                            disciplineByEventId
                         )
                         is DaySlotItem.UnplacedLesson -> UnplacedLessonCardWithLocation(
                             item.lesson,
                             item.reason,
                             customLocation = item.customLocation,
-                            teacherName = item.teacherName
+                            teacherName = item.teacherName,
+                            disciplineName = disciplineByEventId[item.lesson.id]
                         )
                     }
                 }
@@ -533,7 +567,13 @@ private fun getPluralForm(count: Int): String {
 }
 
 @Composable
-private fun EventCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null, teacherName: String? = null) {
+private fun EventCardWithLocation(
+    event: EventDto,
+    roomName: String? = null,
+    customLocation: String? = null,
+    teacherName: String? = null,
+    disciplineName: String? = null
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -542,7 +582,7 @@ private fun EventCardWithLocation(event: EventDto, roomName: String? = null, cus
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
-                text = event.name ?: "Без названия",
+                text = buildLessonTitle(event, disciplineName),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -601,7 +641,13 @@ private fun WindowCard(slot: TimeSlot) {
 }
 
 @Composable
-private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, locations: Map<String, String?> = emptyMap(), teachers: Map<String, String?> = emptyMap()) {
+private fun ConflictCardWithLocation(
+    slot: TimeSlot,
+    lessons: List<EventDto>,
+    locations: Map<String, String?> = emptyMap(),
+    teachers: Map<String, String?> = emptyMap(),
+    disciplineByEventId: Map<String, String> = emptyMap()
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -619,7 +665,7 @@ private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, lo
                 val locationStr = locations[event.id]?.let { " 📍 $it" } ?: ""
                 val teacherStr = teachers[event.id]?.let { " 👨‍🏫 $it" } ?: ""
                 Text(
-                    text = "• ${event.name ?: "Без названия"} (${formatEventTime(event.start, event.end)})$teacherStr$locationStr",
+                    text = "• ${buildLessonTitle(event, disciplineByEventId[event.id])} (${formatEventTime(event.start, event.end)})$teacherStr$locationStr",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -629,7 +675,13 @@ private fun ConflictCardWithLocation(slot: TimeSlot, lessons: List<EventDto>, lo
 }
 
 @Composable
-private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = null, customLocation: String? = null, teacherName: String? = null) {
+private fun UnplacedLessonCardWithLocation(
+    event: EventDto,
+    roomName: String? = null,
+    customLocation: String? = null,
+    teacherName: String? = null,
+    disciplineName: String? = null
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -638,7 +690,7 @@ private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = 
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
-                text = "Вне сетки: ${event.name ?: "Без названия"}",
+                text = "Вне сетки: ${buildLessonTitle(event, disciplineName)}",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -662,6 +714,22 @@ private fun UnplacedLessonCardWithLocation(event: EventDto, roomName: String? = 
                 )
             }
         }
+    }
+}
+
+private fun buildLessonTitle(
+    lesson: EventDto,
+    disciplineName: String?
+): String {
+    val discipline = disciplineName?.trim().orEmpty()
+    val topic = lesson.name?.trim().orEmpty()
+
+    return when {
+        discipline.isBlank() && topic.isBlank() -> "Без названия"
+        discipline.isBlank() -> topic
+        topic.isBlank() -> discipline
+        discipline.equals(topic, ignoreCase = true) -> discipline
+        else -> "$discipline / $topic"
     }
 }
 
