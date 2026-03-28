@@ -32,6 +32,7 @@ data class Embedded(
 data class EventDto(
     val id: String,
     val name: String? = null,
+    @SerialName("nameShort") val nameShort: String? = null,
     val start: String? = null,
     val end: String? = null,
     @SerialName("_links") val links: EventLinks? = null,

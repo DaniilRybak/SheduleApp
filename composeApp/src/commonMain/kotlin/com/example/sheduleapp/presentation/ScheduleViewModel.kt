@@ -92,6 +92,9 @@ class ScheduleViewModel(
     private val _disciplineByEventId = MutableStateFlow<Map<String, String>>(emptyMap())
     val disciplineByEventId = _disciplineByEventId.asStateFlow()
 
+    private val _disciplineShortByEventId = MutableStateFlow<Map<String, String>>(emptyMap())
+    val disciplineShortByEventId = _disciplineShortByEventId.asStateFlow()
+
     init {
         observeFavorites()
         observeDisplayMode()
@@ -139,6 +142,7 @@ class ScheduleViewModel(
                 val scheduleResponse = scheduleRepository.getSchedule(request)
                 _scheduleState.value = scheduleResponse
                 _disciplineByEventId.value = buildDisciplineByEventId(scheduleResponse)
+                _disciplineShortByEventId.value = buildDisciplineShortByEventId(scheduleResponse)
                 filterEvents()
 
                 println(
@@ -156,6 +160,7 @@ class ScheduleViewModel(
                 _errorMessage.value = errorMsg
                 _scheduleState.value = null
                 _disciplineByEventId.value = emptyMap()
+                _disciplineShortByEventId.value = emptyMap()
                 println("Error fetching schedule: ${e.message}")
                 e.printStackTrace()
             } finally {
@@ -175,6 +180,14 @@ class ScheduleViewModel(
                 ?: course?.nameShort?.takeIf { it.isNotBlank() }
                 ?: ""
             event.id to discipline
+        }
+    }
+
+    private fun buildDisciplineShortByEventId(schedule: ScheduleResponse): Map<String, String> {
+        val embedded = schedule.embedded ?: return emptyMap()
+
+        return embedded.events.associate { event ->
+            event.id to event.nameShort.orEmpty()
         }
     }
 
@@ -433,3 +446,5 @@ class ScheduleViewModel(
         return daysShort.indexOf(dayPrefix).takeIf { it >= 0 } ?: 7
     }
 }
+
+

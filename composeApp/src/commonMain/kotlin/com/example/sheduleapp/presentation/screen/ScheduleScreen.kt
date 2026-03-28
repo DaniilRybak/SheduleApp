@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +52,7 @@ fun ScheduleScreen(
     val favoriteGroupIds by viewModel.favoriteGroupIds.collectAsState()
     val displayMode by viewModel.displayMode.collectAsState()
     val disciplineByEventId by viewModel.disciplineByEventId.collectAsState()
+    val disciplineShortByEventId by viewModel.disciplineShortByEventId.collectAsState()
 
     val favoriteGroups = groups
         .filter { it.personId in favoriteGroupIds }
@@ -93,17 +96,20 @@ fun ScheduleScreen(
                     dayItemsByDay = dayItemsByDay,
                     expandedDays = expandedDays,
                     disciplineByEventId = disciplineByEventId,
+                    disciplineShortByEventId = disciplineShortByEventId,
                     onToggleDay = { viewModel.toggleDayExpansion(it) }
                 )
                 DisplayMode.COMPACT -> EventsByDayList(
                     dayItemsByDay = compactDayItems,
                     expandedDays = expandedDays,
                     disciplineByEventId = disciplineByEventId,
+                    disciplineShortByEventId = disciplineShortByEventId,
                     onToggleDay = { viewModel.toggleDayExpansion(it) }
                 )
                 DisplayMode.GRID -> ScheduleGrid(
                     dayItemsByDay = compactDayItems,
-                    disciplineByEventId = disciplineByEventId
+                    disciplineByEventId = disciplineByEventId,
+                    disciplineShortByEventId = disciplineShortByEventId
                 )
             }
         }
@@ -218,6 +224,7 @@ private fun EventsByDayList(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
     expandedDays: Set<String>,
     disciplineByEventId: Map<String, String>,
+    disciplineShortByEventId: Map<String, String>,
     onToggleDay: (String) -> Unit
 ) {
     LazyColumn(
@@ -232,6 +239,7 @@ private fun EventsByDayList(
                     dayItems = items,
                     isExpanded = day in expandedDays,
                     disciplineByEventId = disciplineByEventId,
+                    disciplineShortByEventId = disciplineShortByEventId,
                     onToggle = { onToggleDay(day) }
                 )
             }
@@ -242,7 +250,8 @@ private fun EventsByDayList(
 @Composable
 private fun ScheduleGrid(
     dayItemsByDay: Map<String, List<DaySlotItem>>,
-    disciplineByEventId: Map<String, String>
+    disciplineByEventId: Map<String, String>,
+    disciplineShortByEventId: Map<String, String>
 ) {
     val dayKeys = dayItemsByDay.keys.toList()
     val slots = TimeSlot.defaultSlots()
@@ -300,6 +309,7 @@ private fun ScheduleGrid(
                     GridCell(
                         items = cellItems,
                         disciplineByEventId = disciplineByEventId,
+                        disciplineShortByEventId = disciplineShortByEventId,
                         modifier = Modifier
                             .width(180.dp)
                             .fillMaxHeight()
@@ -336,7 +346,8 @@ private fun ScheduleGrid(
                         roomName = item.roomName,
                         customLocation = item.customLocation,
                         teacherName = item.teacherName,
-                        disciplineName = disciplineByEventId[item.lesson.id]
+                        disciplineName = disciplineByEventId[item.lesson.id],
+                        disciplineShortName = disciplineShortByEventId[item.lesson.id]
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                 }
@@ -349,6 +360,7 @@ private fun ScheduleGrid(
 private fun GridCell(
     items: List<DaySlotItem>,
     disciplineByEventId: Map<String, String>,
+    disciplineShortByEventId: Map<String, String>,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -378,21 +390,28 @@ private fun GridCell(
             items.forEach { item ->
                 when (item) {
                     is DaySlotItem.LessonSlot -> {
+                        val disciplineName = disciplineByEventId[item.lesson.id]
+                        val disciplineShortName = disciplineShortByEventId[item.lesson.id]
+                        val titleColor = lessonTypeTitleColor(item.lesson, disciplineName, disciplineShortName)
+                        val containerColor = lessonTypeContainerColor(item.lesson, disciplineName, disciplineShortName)
                         val hasLocation = item.roomName != null || item.customLocation != null
 
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(containerColor)
+                                .padding(8.dp)
                                 .heightIn(min = 86.dp)
                         ) {
                             Text(
                                 text = buildLessonTitle(
                                     lesson = item.lesson,
-                                    disciplineName = disciplineByEventId[item.lesson.id]
+                                    disciplineName = disciplineName
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = titleColor
                             )
 
                             Spacer(modifier = Modifier.weight(1f))
@@ -448,6 +467,7 @@ private fun DaySection(
     dayItems: List<DaySlotItem>,
     isExpanded: Boolean,
     disciplineByEventId: Map<String, String>,
+    disciplineShortByEventId: Map<String, String>,
     onToggle: () -> Unit
 ) {
     Column(
@@ -475,7 +495,8 @@ private fun DaySection(
                             roomName = item.roomName,
                             customLocation = item.customLocation,
                             teacherName = item.teacherName,
-                            disciplineName = disciplineByEventId[item.lesson.id]
+                            disciplineName = disciplineByEventId[item.lesson.id],
+                            disciplineShortName = disciplineShortByEventId[item.lesson.id]
                         )
                         is DaySlotItem.WindowSlot -> WindowCard(item.slot)
                         is DaySlotItem.ConflictSlot -> ConflictCardWithLocation(
@@ -483,14 +504,16 @@ private fun DaySection(
                             item.lessons,
                             item.locations,
                             item.teachers,
-                            disciplineByEventId
+                            disciplineByEventId,
+                            disciplineShortByEventId
                         )
                         is DaySlotItem.UnplacedLesson -> UnplacedLessonCardWithLocation(
                             item.lesson,
                             item.reason,
                             customLocation = item.customLocation,
                             teacherName = item.teacherName,
-                            disciplineName = disciplineByEventId[item.lesson.id]
+                            disciplineName = disciplineByEventId[item.lesson.id],
+                            disciplineShortName = disciplineShortByEventId[item.lesson.id]
                         )
                     }
                 }
@@ -572,20 +595,24 @@ private fun EventCardWithLocation(
     roomName: String? = null,
     customLocation: String? = null,
     teacherName: String? = null,
-    disciplineName: String? = null
+    disciplineName: String? = null,
+    disciplineShortName: String? = null
 ) {
+    val containerColor = lessonTypeContainerColor(event, disciplineName, disciplineShortName)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            val titleColor = lessonTypeTitleColor(event, disciplineName, disciplineShortName)
             Text(
                 text = buildLessonTitle(event, disciplineName),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = titleColor
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -646,7 +673,8 @@ private fun ConflictCardWithLocation(
     lessons: List<EventDto>,
     locations: Map<String, String?> = emptyMap(),
     teachers: Map<String, String?> = emptyMap(),
-    disciplineByEventId: Map<String, String> = emptyMap()
+    disciplineByEventId: Map<String, String> = emptyMap(),
+    disciplineShortByEventId: Map<String, String> = emptyMap()
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -664,10 +692,15 @@ private fun ConflictCardWithLocation(
             lessons.forEach { event ->
                 val locationStr = locations[event.id]?.let { " 📍 $it" } ?: ""
                 val teacherStr = teachers[event.id]?.let { " 👨‍🏫 $it" } ?: ""
+                val titleColor = lessonTypeTitleColor(
+                    event,
+                    disciplineByEventId[event.id],
+                    disciplineShortByEventId[event.id]
+                )
                 Text(
                     text = "• ${buildLessonTitle(event, disciplineByEventId[event.id])} (${formatEventTime(event.start, event.end)})$teacherStr$locationStr",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
+                    color = titleColor
                 )
             }
         }
@@ -680,20 +713,24 @@ private fun UnplacedLessonCardWithLocation(
     roomName: String? = null,
     customLocation: String? = null,
     teacherName: String? = null,
-    disciplineName: String? = null
+    disciplineName: String? = null,
+    disciplineShortName: String? = null
 ) {
+    val containerColor = lessonTypeContainerColor(event, disciplineName, disciplineShortName)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            val titleColor = lessonTypeTitleColor(event, disciplineName, disciplineShortName)
             Text(
                 text = "Вне сетки: ${buildLessonTitle(event, disciplineName)}",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                color = titleColor
             )
             Spacer(modifier = Modifier.height(2.dp))
             if (teacherName != null) {
@@ -714,6 +751,56 @@ private fun UnplacedLessonCardWithLocation(
                 )
             }
         }
+    }
+}
+
+private enum class LessonType {
+    PRACTICE,
+    LECTURE,
+    LAB,
+    OTHER
+}
+
+private fun resolveLessonType(
+    event: EventDto,
+    disciplineName: String?,
+    disciplineShortName: String?
+): LessonType {
+    val short = disciplineShortName.orEmpty().lowercase()
+
+    return when {
+        short.contains("лаб") || short.contains("лаборатор") -> LessonType.LAB
+        short.contains("лекц") || short.contains("лекцион") || short.contains("лк") -> LessonType.LECTURE
+        short.contains("практ") || short.contains("практичес") || short.contains("семинар") -> LessonType.PRACTICE
+        else -> LessonType.OTHER
+    }
+}
+
+@Composable
+private fun lessonTypeTitleColor(
+    event: EventDto,
+    disciplineName: String?,
+    disciplineShortName: String?
+): Color {
+    return when (resolveLessonType(event, disciplineName, disciplineShortName)) {
+        LessonType.PRACTICE -> Color(0xFF1E88E5)
+        LessonType.LECTURE -> Color(0xFF43A047)
+        LessonType.LAB -> Color(0xFFFB8C00)
+        LessonType.OTHER -> MaterialTheme.colorScheme.onSurface
+    }
+}
+
+@Composable
+private fun lessonTypeContainerColor(
+    event: EventDto,
+    disciplineName: String?,
+    disciplineShortName: String?
+): Color {
+    return when (resolveLessonType(event, disciplineName, disciplineShortName)) {
+        LessonType.PRACTICE -> Color(0xFFE3F2FD)
+        LessonType.LECTURE -> Color(0xFFE8F5E9)
+        LessonType.LAB -> Color(0xFFFFF3E0)
+        LessonType.OTHER -> MaterialTheme.colorScheme.surfaceVariant
     }
 }
 
