@@ -20,6 +20,19 @@ class SettingsViewModel(
     val settings = _settings.asStateFlow()
 
     init {
+        observeTheme()
+        observeDisplayMode()
+    }
+
+    private fun observeTheme() {
+        viewModelScope.launch {
+            favoritesRepository.observeAppTheme().collect { theme ->
+                _settings.value = _settings.value.copy(theme = theme)
+            }
+        }
+    }
+
+    private fun observeDisplayMode() {
         viewModelScope.launch {
             favoritesRepository.observeDisplayMode().collect { mode ->
                 _settings.value = _settings.value.copy(displayMode = mode)
@@ -31,6 +44,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val updated = _settings.value.copy(theme = theme)
             _settings.value = updated
+            favoritesRepository.setAppTheme(theme)
             updateSettingsUseCase(updated)
         }
     }
@@ -62,4 +76,3 @@ class SettingsViewModel(
         }
     }
 }
-

@@ -3,6 +3,7 @@ package com.example.scheduleapp.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.example.scheduleapp.domain.model.AppTheme
 import com.example.scheduleapp.domain.model.DisplayMode
 import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.sheduleapp.storage.ScheduleKeys
@@ -25,6 +26,18 @@ class FavoritesRepositoryImpl(
     override suspend fun setDisplayMode(mode: DisplayMode) {
         dataStore.edit { prefs ->
             prefs[ScheduleKeys.displayMode] = mode.name
+        }
+    }
+
+    override fun observeAppTheme(): Flow<AppTheme> =
+        dataStore.data.map { prefs ->
+            val raw = prefs[ScheduleKeys.appTheme]
+            AppTheme.entries.firstOrNull { it.name == raw } ?: AppTheme.SYSTEM
+        }
+
+    override suspend fun setAppTheme(theme: AppTheme) {
+        dataStore.edit { prefs ->
+            prefs[ScheduleKeys.appTheme] = theme.name
         }
     }
 

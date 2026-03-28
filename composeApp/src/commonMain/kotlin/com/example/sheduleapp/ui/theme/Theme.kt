@@ -93,6 +93,7 @@ fun ScheduleAppTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = AppTypography,
         content = content
     )
 }
@@ -112,4 +113,3 @@ fun getDayColor(dayIndex: Int) = when (dayIndex) {
     6 -> SundayColor
     else -> MaterialTheme.colorScheme.primary
 }
-

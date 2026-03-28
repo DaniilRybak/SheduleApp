@@ -8,6 +8,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.sheduleapp.presentation.screen.GroupSearchScreen
 import com.example.sheduleapp.presentation.screen.ScheduleScreen
 import com.example.sheduleapp.presentation.screen.SettingsScreen
@@ -17,6 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import com.example.scheduleapp.domain.model.AppTheme
+import com.example.sheduleapp.presentation.SettingsViewModel
+import org.koin.compose.koinInject
 
 
 
@@ -28,7 +32,17 @@ sealed class Screen(val title: String, val Icons: ImageVector) {
 
 @Composable
 fun App() {
-    ScheduleAppTheme {
+    val settingsViewModel: SettingsViewModel = koinInject()
+    val settings by settingsViewModel.settings.collectAsState()
+    val systemIsDark = isSystemInDarkTheme()
+
+    val darkTheme = when (settings.theme) {
+        AppTheme.LIGHT -> false
+        AppTheme.DARK -> true
+        AppTheme.SYSTEM -> systemIsDark
+    }
+
+    ScheduleAppTheme(darkTheme = darkTheme) {
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Schedule) }
 
         Scaffold(

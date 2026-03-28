@@ -16,6 +16,7 @@ object ScheduleKeys {
         longPreferencesKey("schedule_last_update_${normalize(cacheKey)}")
 
     val displayMode = stringPreferencesKey("display_mode")
+    val appTheme = stringPreferencesKey("app_theme")
     val showMilitaryLessons = booleanPreferencesKey("show_military_lessons")
 
     val favoriteGroupIds = stringSetPreferencesKey("favorite_group_ids")
