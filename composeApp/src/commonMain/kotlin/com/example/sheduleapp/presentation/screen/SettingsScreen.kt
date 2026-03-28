@@ -120,16 +120,6 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
-            item {
-                SettingsSwitchCard(
-                    title = "Еженедельный режим",
-                    subtitle = "Показывать расписание по неделям",
-                    isChecked = settings.isWeeklyMode,
-                    onCheckedChange = { viewModel.updateWeeklyMode(it) }
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-            }
         }
     }
 }
