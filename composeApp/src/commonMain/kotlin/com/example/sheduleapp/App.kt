@@ -176,8 +176,7 @@ private fun FloatingBottomBar(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = screen.title,
-                        fontSize = 12
-                            .sp,
+                        fontSize = 12.sp,
                         color = contentColor,
                         style = MaterialTheme.typography.labelSmall,
                         textAlign = TextAlign.Center,
