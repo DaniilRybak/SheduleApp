@@ -1,13 +1,12 @@
 package com.example.scheduleapp.data.repository
 
 import com.example.scheduleapp.data.model.EventDto
-import com.example.scheduleapp.data.model.PersonDto
 import com.example.scheduleapp.data.model.ScheduleRequest
 import com.example.scheduleapp.data.model.ScheduleResponse
 import com.example.scheduleapp.domain.model.DaySchedule
 import com.example.scheduleapp.domain.model.Lesson
 import com.example.scheduleapp.domain.model.WeekSchedule
-import kotlinx.datetime.DayOfWeek
+import com.example.scheduleapp.domain.repository.WeekScheduleRepository
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.DateTimeUnit
@@ -16,7 +15,7 @@ import kotlinx.datetime.plus
 
 class WeekScheduleRepositoryImpl(
     private val scheduleRepository: ScheduleRepository
-) : com.example.scheduleapp.domain.repository.WeekScheduleRepository {
+) : WeekScheduleRepository {
 
     override suspend fun getWeekSchedule(date: LocalDate, entryId: String): WeekSchedule? {
         if (entryId.isBlank()) return null
@@ -31,13 +30,13 @@ class WeekScheduleRepositoryImpl(
             )
             mapResponseToWeekSchedule(response, weekStart)
         } catch (e: Exception) {
+            println("WeekScheduleRepositoryImpl.getWeekSchedule failed: ${e.message}")
             null
         }
     }
 
     private fun mapResponseToWeekSchedule(response: ScheduleResponse, weekStart: LocalDate): WeekSchedule {
         val events = response.embedded?.events ?: emptyList()
-        val persons = response.embedded?.persons ?: emptyList()
         val dayMap = events.groupBy { event ->
             event.start?.substringBefore("T") ?: ""
         }
@@ -46,7 +45,7 @@ class WeekScheduleRepositoryImpl(
             val dateKey = day.toString()
 
             val dayEvents = dayMap[dateKey] ?: emptyList()
-            val lessons = dayEvents.map { e -> mapEventToLesson(e, persons) }
+            val lessons = dayEvents.map(::mapEventToLesson)
 
             DaySchedule(dateKey = dateKey, lessons = lessons.sortedBy { it.startIso })
         }
@@ -56,7 +55,7 @@ class WeekScheduleRepositoryImpl(
         )
     }
 
-    private fun mapEventToLesson(event: EventDto, persons: List<PersonDto>): Lesson {
+    private fun mapEventToLesson(event: EventDto): Lesson {
         val start = event.start ?: ""
         val end = event.end ?: ""
         val name = event.name ?: ""

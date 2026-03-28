@@ -52,6 +52,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            // Иконки Material Design
+            implementation(libs.material.icons.core)
+
             // Дата
             implementation(libs.kotlinx.datetime.v061)
 
@@ -79,6 +82,11 @@ kotlin {
             // SQLDelight
             implementation(libs.coroutines.extensions)
             implementation(libs.kotlinx.datetime)
+
+            // DataStore library
+            implementation("androidx.datastore:datastore:1.2.1")
+            // The Preferences DataStore library
+            implementation("androidx.datastore:datastore-preferences:1.2.1")
         }
         iosMain.dependencies {
             // Ktor engine для iOS
@@ -86,6 +94,9 @@ kotlin {
 
             // SQLDelight driver для iOS (native)
             implementation(libs.native.driver)
+
+            // okio — нужен для DataStore Path на iOS
+            implementation(libs.okio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

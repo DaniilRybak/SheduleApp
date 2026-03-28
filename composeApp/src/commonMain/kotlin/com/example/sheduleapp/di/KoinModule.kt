@@ -1,24 +1,33 @@
 package com.example.scheduleapp.di
 
+import com.example.scheduleapp.data.local.FavoritesRepositoryImpl
 import com.example.scheduleapp.data.local.PrefsRepository
 import com.example.scheduleapp.data.local.PrefsRepositoryImpl
 import com.example.scheduleapp.data.local.SettingsRepositoryImpl
 import com.example.scheduleapp.data.remote.ScheduleApi
+import com.example.scheduleapp.data.repository.ScheduleEntryRepositoryImpl
 import com.example.scheduleapp.data.repository.ScheduleRepository
 import com.example.scheduleapp.data.repository.ScheduleRepositoryImpl
-import com.example.scheduleapp.data.repository.ScheduleEntryRepositoryImpl
 import com.example.scheduleapp.data.repository.WeekScheduleRepositoryImpl
+import com.example.scheduleapp.domain.repository.FavoritesRepository
 import com.example.scheduleapp.domain.repository.ScheduleEntryRepository
 import com.example.scheduleapp.domain.repository.SettingsRepository
 import com.example.scheduleapp.domain.repository.WeekScheduleRepository
+import com.example.scheduleapp.domain.usecase.BuildDaySlotsUseCase
 import com.example.scheduleapp.domain.usecase.GetScheduleEntryUseCase
 import com.example.scheduleapp.domain.usecase.GetSettingsUseCase
 import com.example.scheduleapp.domain.usecase.GetWeekScheduleUseCase
+import com.example.scheduleapp.domain.usecase.SearchScheduleEntriesUseCase
 import com.example.scheduleapp.domain.usecase.UpdateSettingsUseCase
 import com.example.scheduleapp.presentation.ScheduleViewModel
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.serialization.kotlinx.json.*
+import com.example.sheduleapp.data.ScheduleLocalDataSource
+import com.example.sheduleapp.data.datasource.DataStoreScheduleSource
+import com.example.sheduleapp.data.repository.RemoteConfigRepository
+import com.example.sheduleapp.domain.usecase.EventLocationMapperUseCase
+import com.example.sheduleapp.presentation.SettingsViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -35,14 +44,20 @@ val networkModule = module {
         }
     }
     singleOf(::ScheduleApi)
-    single<ScheduleRepository> { ScheduleRepositoryImpl(get()) }
+    single<ScheduleRepository> { ScheduleRepositoryImpl(get(), get()) }
+    singleOf(::RemoteConfigRepository)
 }
 
 val dataModule = module {
     single<SettingsRepository> { SettingsRepositoryImpl() }
     single<PrefsRepository> { PrefsRepositoryImpl() }
+    single<FavoritesRepository> { FavoritesRepositoryImpl(get()) }
     single<ScheduleEntryRepository> { ScheduleEntryRepositoryImpl() }
     single<WeekScheduleRepository> { WeekScheduleRepositoryImpl(get()) }
+}
+
+val storageModule = module {
+    single<ScheduleLocalDataSource> { DataStoreScheduleSource(get()) }
 }
 
 val useCaseModule = module {
@@ -50,12 +65,16 @@ val useCaseModule = module {
     single { UpdateSettingsUseCase(get()) }
     single { GetScheduleEntryUseCase(get()) }
     single { GetWeekScheduleUseCase(get()) }
+    single { SearchScheduleEntriesUseCase() }
+    single { EventLocationMapperUseCase() }
+    single { BuildDaySlotsUseCase(get()) }
 }
 
 val viewModelModule = module {
     singleOf(::ScheduleViewModel)
+    singleOf(::SettingsViewModel)
 }
 
 val commonModule = module {
-    includes(networkModule, dataModule, useCaseModule, viewModelModule)
+    includes(networkModule, dataModule, storageModule, useCaseModule, viewModelModule)
 }

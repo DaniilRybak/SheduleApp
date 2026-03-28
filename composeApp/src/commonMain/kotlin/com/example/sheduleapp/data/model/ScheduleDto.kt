@@ -32,9 +32,11 @@ data class Embedded(
 data class EventDto(
     val id: String,
     val name: String? = null,
+    @SerialName("nameShort") val nameShort: String? = null,
     val start: String? = null,
     val end: String? = null,
-    @SerialName("_links") val links: EventLinks? = null
+    @SerialName("_links") val links: EventLinks? = null,
+    var teacherName: String? = null
 )
 
 @Serializable
@@ -79,7 +81,7 @@ data class EventLocationDto(
 
 @Serializable
 data class LinksWrapper(
-    @SerialName("event-rooms") @Serializable(with = EventRoomsSerializer::class) val eventRooms: List<HrefWrapper>
+    @SerialName("event-rooms") @Serializable(with = EventRoomsSerializer::class) val eventRooms: List<HrefWrapper>? = null
 )
 
 @Serializable
